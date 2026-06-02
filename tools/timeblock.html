@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TimeBlock — Ariel Bodik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
+    --line:#26263a;--line-bright:#34344e;--text:#f4f4f8;--text-dim:#a0a0b8;--text-faint:#6a6a85;
+    --lime:#c6ff3a;--violet:#7c5cff;--cyan:#3affe0;--pink:#ff5c8a;--accent:#ff5c8a;
+    --p-high:#ff5c8a;--p-med:#ffcf3a;--p-low:#3affe0;--brk:#6a6a85;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(720px circle at 82% 4%,rgba(255,92,138,.11),transparent 50%),radial-gradient(600px circle at 5% 42%,rgba(124,92,255,.07),transparent 45%)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(10,10,15,.7);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1100px;margin:0 auto}
+  .brand{font-family:'Clash Display';font-weight:600;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;background:var(--lime);border-radius:50%;box-shadow:0 0 12px var(--lime)}
+  .back{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);transition:.18s}
+  .back:hover{color:var(--pink)}
+
+  .head{padding:52px 0 24px}
+  .kick{font-family:'JetBrains Mono';font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-bright);border-radius:20px;padding:6px 13px;margin-bottom:20px;background:var(--surface)}
+  h1{font-family:'Clash Display';font-weight:600;font-size:clamp(32px,5vw,52px);letter-spacing:-.02em;line-height:1.05}
+  h1 .g{background:linear-gradient(120deg,var(--pink),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .head p{margin-top:16px;color:var(--text-dim);font-size:18px;max-width:640px}
+
+  .grid{display:grid;grid-template-columns:1fr 1.1fr;gap:22px;padding:14px 0 60px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .panel h2{font-family:'Clash Display';font-weight:600;font-size:18px;margin-bottom:6px}
+  .panel .sub{color:var(--text-faint);font-size:13px;margin-bottom:16px}
+  label.fld{display:block;font-size:13px;color:var(--text-dim);margin:14px 0 6px;font-weight:500}
+  textarea,input,select{width:100%;background:var(--bg-2);border:1px solid var(--line-bright);border-radius:10px;color:var(--text);font-family:'Familjen Grotesk';font-size:15px;padding:12px 14px}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent)}
+  textarea{min-height:180px;resize:vertical;line-height:1.7;font-family:'JetBrains Mono';font-size:13.5px}
+  .row{display:flex;gap:12px}.row>div{flex:1}
+  .hintbox{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;font-size:13px;color:var(--text-faint);margin-top:14px;line-height:1.6}
+  .hintbox code{color:var(--cyan);font-family:'JetBrains Mono';font-size:12px}
+  .btn{font-family:'Familjen Grotesk';font-weight:600;font-size:15px;padding:13px 22px;border-radius:10px;cursor:pointer;border:none;transition:.18s;display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-top:18px;background:linear-gradient(120deg,var(--pink),var(--violet));color:#0a0a0f}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,92,138,.25)}
+  .sample{font-family:'JetBrains Mono';font-size:12px;color:var(--text-faint);background:none;border:none;cursor:pointer;margin-top:10px;text-decoration:underline}
+  .sample:hover{color:var(--pink)}
+
+  .timeline{position:relative}
+  .summary{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+  .summary .s .n{font-family:'Clash Display';font-size:24px;font-weight:600}
+  .summary .s .l{font-family:'JetBrains Mono';font-size:11px;color:var(--text-faint)}
+  .block{display:flex;gap:14px;margin-bottom:10px;align-items:stretch}
+  .block .time{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);width:74px;flex-shrink:0;padding-top:13px;text-align:right}
+  .block .bar{flex:1;border-radius:11px;padding:13px 16px;border:1px solid var(--line-bright);background:var(--surface-2);position:relative;overflow:hidden}
+  .block .bar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .block.high .bar::before{background:var(--p-high)}.block.med .bar::before{background:var(--p-med)}
+  .block.low .bar::before{background:var(--p-low)}.block.brk .bar::before{background:var(--brk)}
+  .block.brk .bar{background:var(--bg-2);border-style:dashed}
+  .block .task{font-weight:600;font-size:15px}
+  .block .meta{font-family:'JetBrains Mono';font-size:11px;color:var(--text-faint);margin-top:3px}
+  .block .pri{position:absolute;top:13px;right:14px;font-family:'JetBrains Mono';font-size:10px;text-transform:uppercase;padding:2px 8px;border-radius:10px}
+  .block.high .pri{background:rgba(255,92,138,.15);color:var(--p-high)}
+  .block.med .pri{background:rgba(255,207,58,.13);color:var(--p-med)}
+  .block.low .pri{background:rgba(58,255,224,.12);color:var(--p-low)}
+  .ph{color:var(--text-faint);font-style:italic;text-align:center;padding:60px 20px}
+  .warn{background:rgba(255,207,58,.1);border:1px solid rgba(255,207,58,.3);color:var(--p-med);border-radius:10px;padding:12px 15px;font-size:13.5px;margin-bottom:16px}
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--text-faint);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<nav><div class="nav-in">
+  <a href="../index.html" class="brand"><span class="dot"></span>ARIEL BODIK</a>
+  <a href="../index.html" class="back">← all tools</a>
+</div></nav>
+
+<header class="head wrap">
+  <div class="kick">▦ Productivity</div>
+  <h1>Turn a messy to-do list into <span class="g">a real plan</span>.</h1>
+  <p>Dump your tasks in however they come out of your head. It reads the durations and priorities, fits everything into the hours you actually have, drops in breaks, and hands you a clean time-blocked day.</p>
+</header>
+
+<main class="grid wrap">
+  <section class="panel">
+    <h2>Your tasks</h2>
+    <div class="sub">One per line. Add a time and priority if you want.</div>
+    <textarea id="tasks" placeholder="Study for audit exam 90m !high
+Reply to internship emails 30m
+Gym 45m !low
+Finish cost accounting problem set 60m !high
+Lunch 45m
+Read chapter 4 40m !med"></textarea>
+    <div class="row">
+      <div><label class="fld">Start</label><input type="time" id="start" value="09:00"></div>
+      <div><label class="fld">End</label><input type="time" id="end" value="17:00"></div>
+    </div>
+    <label class="fld">Break every</label>
+    <select id="breakevery">
+      <option value="0">No automatic breaks</option>
+      <option value="90" selected>90 minutes</option>
+      <option value="120">2 hours</option>
+      <option value="60">1 hour</option>
+    </select>
+    <button class="btn" id="build">▦ Build my day</button>
+    <button class="sample" id="loadsample">or load an example list</button>
+    <div class="hintbox">
+      <b style="color:var(--text-dim)">How to write tasks:</b><br>
+      Add a duration like <code>45m</code> or <code>1h</code>. Mark importance with <code>!high</code>, <code>!med</code>, or <code>!low</code>. No duration? It assumes 30 minutes. High-priority work gets scheduled into your freshest hours first.
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Your schedule</h2>
+    <div class="sub">Ordered so the important, demanding work lands early.</div>
+    <div id="out"><div class="ph">Add your tasks and hit build. Your time-blocked day shows up here.</div></div>
+  </section>
+</main>
+
+<footer>Built by Ariel Bodik · TimeBlock runs entirely in your browser</footer>
+
+<script>
+const $=s=>document.querySelector(s);
+const SAMPLE=`Study for audit exam 90m !high
+Finish cost accounting problem set 60m !high
+Reply to internship emails 30m !med
+Read chapter 4 40m !med
+Gym 45m !low
+Lunch 45m
+Organize notes 25m !low`;
+
+$('#loadsample').onclick=()=>{$('#tasks').value=SAMPLE;};
+
+function parseDur(s){
+  let m=0;
+  const h=s.match(/(\d+(?:\.\d+)?)\s*h/i); if(h)m+=parseFloat(h[1])*60;
+  const min=s.match(/(\d+)\s*m(?:in)?\b/i); if(min)m+=parseInt(min[1]);
+  if(!h&&!min){const n=s.match(/\b(\d{2,3})\b/);if(n)m=parseInt(n[1]);}
+  return m||30;
+}
+function parsePriority(s){
+  if(/!high|!h\b|\bhigh\b|urgent|important/i.test(s))return 'high';
+  if(/!low|!l\b|\blow\b/i.test(s))return 'low';
+  if(/!med|!m\b|\bmed\b|medium/i.test(s))return 'med';
+  return 'med';
+}
+function cleanName(s){
+  return s.replace(/!\w+/g,'').replace(/\b\d+(?:\.\d+)?\s*h(?:ours?)?\b/ig,'').replace(/\b\d+\s*m(?:in)?\b/ig,'')
+    .replace(/\b(high|low|med|medium|urgent|important)\b/ig,'').replace(/\s{2,}/g,' ').trim();
+}
+function isBreakish(name){return /lunch|break|coffee|rest|eat|dinner|breakfast/i.test(name);}
+
+function fmtTime(mins){
+  let h=Math.floor(mins/60),m=mins%60;const ap=h>=12?'PM':'AM';let hh=h%12;if(hh===0)hh=12;
+  return `${hh}:${String(m).padStart(2,'0')} ${ap}`;
+}
+
+$('#build').onclick=()=>{
+  const lines=$('#tasks').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const out=$('#out');
+  if(!lines.length){out.innerHTML='<div class="ph">Add at least one task first.</div>';return;}
+
+  const [sh,sm]=$('#start').value.split(':').map(Number);
+  const [eh,em]=$('#end').value.split(':').map(Number);
+  let startMin=sh*60+sm, endMin=eh*60+em;
+  if(endMin<=startMin)endMin=startMin+480;
+  const avail=endMin-startMin;
+  const breakEvery=parseInt($('#breakevery').value);
+
+  let tasks=lines.map(l=>{
+    const name=cleanName(l)||'Task';
+    return {name,dur:parseDur(l),pri:parsePriority(l),brk:isBreakish(cleanName(l))};
+  });
+
+  // sort: real tasks by priority (high first), breaks keep their relative order but float to natural spots
+  const order={high:0,med:1,low:2};
+  const work=tasks.filter(t=>!t.brk).sort((a,b)=>order[a.pri]-order[b.pri]);
+  const breaks=tasks.filter(t=>t.brk);
+
+  const totalWork=work.reduce((s,t)=>s+t.dur,0);
+  const schedule=[];
+  let cursor=startMin, sinceBreak=0, breakIdx=0;
+
+  work.forEach((t,i)=>{
+    // insert automatic break if configured and we've gone long enough
+    if(breakEvery&&sinceBreak>=breakEvery&&cursor+15<=endMin){
+      schedule.push({name:'Break',dur:15,pri:'brk',brk:true,start:cursor});cursor+=15;sinceBreak=0;
+    }
+    // insert a user-provided break around the midpoint
+    if(breakIdx<breaks.length && cursor-startMin>=avail/2 && breaks[breakIdx]){
+      const b=breaks[breakIdx++];schedule.push({...b,start:cursor});cursor+=b.dur;sinceBreak=0;
+    }
+    schedule.push({...t,start:cursor});cursor+=t.dur;sinceBreak+=t.dur;
+  });
+  // any leftover user breaks
+  while(breakIdx<breaks.length){const b=breaks[breakIdx++];schedule.push({...b,start:cursor});cursor+=b.dur;}
+
+  const overflow=cursor>endMin;
+  const usedH=(cursor-startMin)/60;
+
+  let html='';
+  if(overflow)html+=`<div class="warn">Heads up: your tasks need about ${usedH.toFixed(1)} hours but you gave yourself ${(avail/60).toFixed(1)}. The schedule runs past your end time. Trim something or extend the day.</div>`;
+
+  html+=`<div class="summary">
+    <div class="s"><div class="n">${work.length}</div><div class="l">tasks</div></div>
+    <div class="s"><div class="n">${Math.round(totalWork/60*10)/10}h</div><div class="l">focused work</div></div>
+    <div class="s"><div class="n">${fmtTime(cursor)}</div><div class="l">wraps up</div></div>
+  </div><div class="timeline">`;
+
+  schedule.forEach(b=>{
+    const cls=b.brk?'brk':b.pri;
+    html+=`<div class="block ${cls}">
+      <div class="time">${fmtTime(b.start)}</div>
+      <div class="bar">
+        <div class="task">${b.name}</div>
+        <div class="meta">${b.dur} min · ${fmtTime(b.start)} – ${fmtTime(b.start+b.dur)}</div>
+        ${b.brk?'':`<span class="pri">${b.pri}</span>`}
+      </div></div>`;
+  });
+  html+='</div>';
+  out.innerHTML=html;
+};
+</script>
+</body>
+</html>

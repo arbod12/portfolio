@@ -105,6 +105,35 @@
     box-shadow:0 10px 40px rgba(124,92,255,.4);display:flex;align-items:center;gap:9px;transition:.2s}
   .ai-fab:hover{transform:translateY(-2px) scale(1.02)}
   .ai-fab .spark{font-size:17px}
+
+  /* AI chat panel */
+  .ai-overlay{position:fixed;inset:0;z-index:70;background:rgba(5,5,9,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:.25s}
+  .ai-overlay.open{opacity:1;pointer-events:auto}
+  .ai-panel{position:fixed;bottom:0;right:0;z-index:71;width:min(440px,100vw);height:min(640px,100vh);
+    background:var(--surface);border:1px solid var(--line-bright);border-radius:20px 20px 0 0;
+    display:flex;flex-direction:column;transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.7,.3,1);
+    box-shadow:0 -10px 60px rgba(0,0,0,.5);margin:0 18px 0 0}
+  @media(min-width:520px){.ai-panel{bottom:18px;border-radius:20px}}
+  .ai-panel.open{transform:translateY(0)}
+  .ai-top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+  .ai-top .t{font-family:'Clash Display';font-weight:600;font-size:17px;display:flex;align-items:center;gap:9px}
+  .ai-top .t .s{background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ai-close{background:none;border:none;color:var(--text-faint);font-size:22px;cursor:pointer;line-height:1}
+  .ai-close:hover{color:var(--text)}
+  .ai-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+  .msg{max-width:85%;padding:11px 15px;border-radius:14px;font-size:14.5px;line-height:1.5;white-space:pre-wrap}
+  .msg.bot{background:var(--surface-2);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+  .msg.user{background:linear-gradient(135deg,var(--violet),var(--cyan));color:#0a0a0f;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
+  .msg.bot.typing{color:var(--text-faint)}
+  .ai-suggest{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px}
+  .ai-suggest button{font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--line-bright);border-radius:16px;padding:7px 12px;cursor:pointer;transition:.15s}
+  .ai-suggest button:hover{border-color:var(--cyan);color:var(--text)}
+  .ai-input{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--line)}
+  .ai-input input{flex:1;background:var(--bg-2);border:1px solid var(--line-bright);border-radius:10px;color:var(--text);font-family:'Familjen Grotesk';font-size:14.5px;padding:11px 14px}
+  .ai-input input:focus{outline:none;border-color:var(--cyan)}
+  .ai-input button{background:linear-gradient(135deg,var(--violet),var(--cyan));color:#0a0a0f;border:none;border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer;font-size:16px}
+  .ai-input button:disabled{opacity:.5;cursor:default}
+
 </style>
 </head>
 <body>
@@ -167,6 +196,24 @@
 
 <button class="ai-fab" id="ai-fab"><span class="spark">✦</span> Ask AI about these tools</button>
 
+<div class="ai-overlay" id="ai-overlay"></div>
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-top">
+    <div class="t"><span class="s">✦</span> Ask about these tools</div>
+    <button class="ai-close" id="ai-close">×</button>
+  </div>
+  <div class="ai-body" id="ai-body"></div>
+  <div class="ai-suggest" id="ai-suggest">
+    <button>What does LedgerLens do?</button>
+    <button>Explain Benford's Law</button>
+    <button>Which tool should I try first?</button>
+  </div>
+  <div class="ai-input">
+    <input id="ai-text" placeholder="Ask anything about the tools..." autocomplete="off">
+    <button id="ai-send">↑</button>
+  </div>
+</div>
+
 <script>
   document.querySelectorAll('footer .wrap span')[0].innerHTML='Built by Ariel Bodik · '+new Date().getFullYear();
 
@@ -174,9 +221,9 @@
     {name:'LedgerLens',kicker:'Audit analytics',icon:'◎',accent:'#c6ff3a',live:true,
      desc:'Upload a general ledger and it tests every single transaction for fraud and error patterns: Benford\u2019s Law, duplicate payments, threshold gaming, and more. Then it writes up what it found.',
      href:'tools/ledgerlens.html',tag:'Flagship'},
-    {name:'PromptLab',kicker:'AI utility',icon:'⚡',accent:'#7c5cff',live:true,
+    {name:'PromptLab',kicker:'AI utility',icon:'⚡',accent:'#7c5cff',live:false,
      desc:'A workbench for writing better AI prompts. Pick the techniques you want, and it rebuilds your prompt into a sharper version, then explains why each change helps.',
-     href:'tools/promptlab.html',tag:'Live AI'},
+     href:'tools/promptlab.html',tag:'Tool'},
     {name:'ClarityCheck',kicker:'Text intelligence',icon:'❡',accent:'#3affe0',live:false,
      desc:'Paste any writing and get a read on how clear it actually is: grade level, passive voice, jargon, and sentence flow, with specific things to fix.',
      href:'tools/claritycheck.html',tag:'Tool'},
@@ -204,10 +251,51 @@
     grid.appendChild(a);
   });
 
-  function openAI(){ alert('AI assistant coming online in the next build step.'); }
+  /* ---------- AI assistant ---------- */
+  const panel=document.getElementById('ai-panel'),overlay=document.getElementById('ai-overlay'),
+        body=document.getElementById('ai-body'),input=document.getElementById('ai-text'),
+        send=document.getElementById('ai-send'),suggest=document.getElementById('ai-suggest');
+  let convo=[],greeted=false;
+
+  function openAI(e){ if(e&&e.preventDefault)e.preventDefault();
+    panel.classList.add('open');overlay.classList.add('open');
+    if(!greeted){greeted=true;addMsg('bot',"Hey! I'm the assistant for Ariel's tools. Ask me what any of them do, how they work, or which to try first.");}
+    setTimeout(()=>input.focus(),200);
+  }
+  function closeAI(){panel.classList.remove('open');overlay.classList.remove('open');}
+
+  function addMsg(role,text){
+    const d=document.createElement('div');d.className='msg '+(role==='user'?'user':'bot');d.textContent=text;
+    body.appendChild(d);body.scrollTop=body.scrollHeight;return d;
+  }
+
+  async function ask(text){
+    if(!text.trim())return;
+    addMsg('user',text);convo.push({role:'user',content:text});
+    input.value='';send.disabled=true;suggest.style.display='none';
+    const typing=addMsg('bot','thinking…');typing.classList.add('typing');
+    try{
+      const r=await fetch('/.netlify/functions/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:convo})});
+      const data=await r.json();
+      typing.remove();
+      const reply=data.reply||data.error||"Hmm, I didn't get a response. Try again?";
+      addMsg('bot',reply);convo.push({role:'assistant',content:reply});
+    }catch(err){
+      typing.remove();
+      addMsg('bot',"I couldn't reach the AI service. If you're viewing this locally, the assistant only works once the site is deployed on Netlify with an API key set.");
+    }
+    send.disabled=false;input.focus();
+  }
+
+  send.onclick=()=>ask(input.value);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')ask(input.value);});
+  suggest.querySelectorAll('button').forEach(b=>b.onclick=()=>ask(b.textContent));
   document.getElementById('ai-fab').onclick=openAI;
-  document.getElementById('ai-open').onclick=e=>{e.preventDefault();openAI();};
-  document.getElementById('ai-open-2').onclick=e=>{e.preventDefault();openAI();};
+  document.getElementById('ai-close').onclick=closeAI;
+  overlay.onclick=closeAI;
+  document.getElementById('ai-open').onclick=openAI;
+  document.getElementById('ai-open-2').onclick=openAI;
 </script>
+
 </body>
 </html>
