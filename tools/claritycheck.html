@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClarityCheck — Ariel Bodik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
+    --line:#26263a;--line-bright:#34344e;--text:#f4f4f8;--text-dim:#a0a0b8;--text-faint:#6a6a85;
+    --lime:#c6ff3a;--violet:#7c5cff;--cyan:#3affe0;--pink:#ff5c8a;--accent:#3affe0;
+    --good:#3affe0;--warn:#ffcf3a;--bad:#ff5c8a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(700px circle at 82% 5%,rgba(58,255,224,.12),transparent 50%),radial-gradient(600px circle at 5% 40%,rgba(124,92,255,.07),transparent 45%)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(10,10,15,.7);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1100px;margin:0 auto}
+  .brand{font-family:'Clash Display';font-weight:600;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;background:var(--lime);border-radius:50%;box-shadow:0 0 12px var(--lime)}
+  .back{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);transition:.18s}
+  .back:hover{color:var(--cyan)}
+
+  .head{padding:54px 0 26px}
+  .kick{font-family:'JetBrains Mono';font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-bright);border-radius:20px;padding:6px 13px;margin-bottom:20px;background:var(--surface)}
+  h1{font-family:'Clash Display';font-weight:600;font-size:clamp(32px,5vw,52px);letter-spacing:-.02em;line-height:1.05}
+  h1 .g{background:linear-gradient(120deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .head p{margin-top:16px;color:var(--text-dim);font-size:18px;max-width:620px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:14px 0 60px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .panel h2{font-family:'Clash Display';font-weight:600;font-size:18px;margin-bottom:6px}
+  .panel .sub{color:var(--text-faint);font-size:13px;margin-bottom:16px}
+  textarea{width:100%;min-height:340px;background:var(--bg-2);border:1px solid var(--line-bright);border-radius:10px;color:var(--text);font-family:'Familjen Grotesk';font-size:15px;padding:14px;resize:vertical;line-height:1.6}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .btn{font-family:'Familjen Grotesk';font-weight:600;font-size:15px;padding:13px 22px;border-radius:10px;cursor:pointer;border:none;transition:.18s;display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-top:14px;background:linear-gradient(120deg,var(--cyan),var(--violet));color:#0a0a0f}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(58,255,224,.25)}
+  .sample{font-family:'JetBrains Mono';font-size:12px;color:var(--text-faint);background:transparent;border:none;cursor:pointer;margin-top:10px;text-decoration:underline}
+  .sample:hover{color:var(--cyan)}
+
+  .scorebig{text-align:center;padding:10px 0 18px}
+  .scorebig .ring{width:120px;height:120px;margin:0 auto 8px}
+  .scorebig .lbl{font-family:'JetBrains Mono';font-size:12px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em}
+  .scorebig .verdict{font-family:'Clash Display';font-size:19px;font-weight:600;margin-top:4px}
+
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .metric{background:var(--bg-2);border:1px solid var(--line-bright);border-radius:12px;padding:14px}
+  .metric .n{font-family:'Clash Display';font-size:24px;font-weight:600}
+  .metric .l{font-size:12px;color:var(--text-faint);margin-top:2px}
+  .metric.flag .n{color:var(--bad)}.metric.ok .n{color:var(--good)}.metric.mid .n{color:var(--warn)}
+
+  .issues{margin-top:18px}
+  .issues h3{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+  .iss{display:flex;gap:11px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:14px}
+  .iss .ic{flex-shrink:0}.iss.bad .ic{color:var(--bad)}.iss.warn .ic{color:var(--warn)}.iss.good .ic{color:var(--good)}
+  .iss .tx b{color:var(--text)}
+  .iss .tx{color:var(--text-dim)}
+  .ph{color:var(--text-faint);font-style:italic;text-align:center;padding:60px 20px}
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--text-faint);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<nav><div class="nav-in">
+  <a href="../index.html" class="brand"><span class="dot"></span>ARIEL BODIK</a>
+  <a href="../index.html" class="back">← all tools</a>
+</div></nav>
+
+<header class="head wrap">
+  <div class="kick">❡ Text Intelligence</div>
+  <h1>Find out if your writing is <span class="g">actually clear</span>.</h1>
+  <p>Paste an email, an essay, a cover letter, anything. It breaks down how readable your writing really is and points at the specific things making it harder to follow than it needs to be.</p>
+</header>
+
+<main class="grid wrap">
+  <section class="panel">
+    <h2>Your text</h2>
+    <div class="sub">Paste anything. Longer samples give better reads.</div>
+    <textarea id="text" placeholder="Paste your writing here..."></textarea>
+    <button class="btn" id="run">❡ Analyze my writing</button>
+    <button class="sample" id="loadsample">or load a sample paragraph</button>
+  </section>
+
+  <section class="panel">
+    <div id="out"><div class="ph">Your analysis will appear here. Paste some text and hit analyze.</div></div>
+  </section>
+</main>
+
+<footer>Built by Ariel Bodik · ClarityCheck runs entirely in your browser</footer>
+
+<script>
+const SAMPLE=`In light of the fact that the quarterly figures were not submitted in a timely manner by the relevant stakeholders, it has been determined by management that a comprehensive review of the existing processes will need to be undertaken in order to ensure that going forward, deliverables are provided within the agreed-upon timeframes. It should be noted that this is not intended to assign blame, but rather to facilitate the implementation of a more robust framework. The aforementioned review will be conducted by the team and the results will be disseminated accordingly.`;
+
+document.getElementById('loadsample').onclick=()=>{document.getElementById('text').value=SAMPLE;};
+
+const FILLER=['in order to','in light of the fact that','it should be noted that','the aforementioned','going forward','at this point in time','due to the fact that','for the purpose of','in the event that','with regard to','it has been determined','utilize','leverage','synergy','aforementioned','herein','thereof'];
+const PASSIVE=/\b(was|were|is|are|been|being|be)\s+(\w+ed|done|made|taken|given|seen|known|shown|held|conducted|submitted|provided|determined|undertaken|disseminated)\b/gi;
+
+function syllables(w){w=w.toLowerCase().replace(/[^a-z]/g,'');if(w.length<=3)return 1;w=w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');const m=w.match(/[aeiouy]{1,2}/g);return m?m.length:1;}
+
+document.getElementById('run').onclick=()=>{
+  const t=document.getElementById('text').value.trim();
+  const out=document.getElementById('out');
+  if(t.length<40){out.innerHTML='<div class="ph">Give me a bit more to work with, at least a sentence or two.</div>';return;}
+
+  const sentences=t.split(/[.!?]+/).filter(s=>s.trim().length>0);
+  const words=t.split(/\s+/).filter(Boolean);
+  const wc=words.length, sc=sentences.length;
+  const syl=words.reduce((a,w)=>a+syllables(w),0);
+  const avgLen=wc/sc;
+  // Flesch-Kincaid grade
+  const fk=Math.max(1,Math.round(0.39*(wc/sc)+11.8*(syl/wc)-15.59));
+  // Flesch reading ease
+  const ease=Math.round(206.835-1.015*(wc/sc)-84.6*(syl/wc));
+
+  const passiveM=t.match(PASSIVE)||[];
+  const passiveCount=passiveM.length;
+  const longSentences=sentences.filter(s=>s.split(/\s+/).filter(Boolean).length>30);
+  const fillerHits=[];
+  FILLER.forEach(f=>{const re=new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');const m=t.match(re);if(m)fillerHits.push([f,m.length]);});
+  const fillerTotal=fillerHits.reduce((a,h)=>a+h[1],0);
+
+  // clarity score 0-100
+  let score=100;
+  score-=Math.max(0,(fk-9))*3;
+  score-=Math.min(25,(passiveCount/sc)*60);
+  score-=Math.min(20,longSentences.length*7);
+  score-=Math.min(20,fillerTotal*3);
+  score=Math.max(12,Math.min(99,Math.round(score)));
+
+  let verdict,vc;
+  if(score>=80){verdict='Crisp and clear';vc='var(--good)';}
+  else if(score>=60){verdict='Pretty readable';vc='var(--cyan)';}
+  else if(score>=40){verdict='Needs tightening';vc='var(--warn)';}
+  else{verdict='Hard to follow';vc='var(--bad)';}
+
+  const circ=2*Math.PI*52, off=circ*(1-score/100);
+  const cls=v=>v?'flag':'ok';
+
+  let issues='';
+  if(fk>11)issues+=`<div class="iss warn"><span class="ic">▲</span><div class="tx"><b>Reading level is high (grade ${fk}).</b> Aim for grade 8 to 10 for most professional writing. Shorter words and sentences pull this down fast.</div></div>`;
+  else issues+=`<div class="iss good"><span class="ic">✓</span><div class="tx"><b>Reading level is solid (grade ${fk}).</b> That lands in a comfortable range for most readers.</div></div>`;
+
+  if(passiveCount>Math.max(2,sc*0.3))issues+=`<div class="iss bad"><span class="ic">●</span><div class="tx"><b>${passiveCount} passive constructions.</b> Passive voice hides who is doing what. Try rewriting so the subject acts: "the team reviewed it" instead of "it was reviewed."</div></div>`;
+  else if(passiveCount>0)issues+=`<div class="iss good"><span class="ic">✓</span><div class="tx"><b>Passive voice is under control (${passiveCount}).</b> A little is fine.</div></div>`;
+
+  if(longSentences.length)issues+=`<div class="iss warn"><span class="ic">▲</span><div class="tx"><b>${longSentences.length} sentence${longSentences.length>1?'s run':' runs'} past 30 words.</b> Long sentences lose people. Break them at the natural "and" or "but."</div></div>`;
+
+  if(fillerTotal)issues+=`<div class="iss bad"><span class="ic">●</span><div class="tx"><b>${fillerTotal} filler phrase${fillerTotal>1?'s':''} found:</b> ${fillerHits.slice(0,4).map(h=>'"'+h[0]+'"').join(', ')}${fillerHits.length>4?'…':''}. These add length without meaning. "In order to" is just "to."</div></div>`;
+  else issues+=`<div class="iss good"><span class="ic">✓</span><div class="tx"><b>No common filler phrases.</b> Nice and direct.</div></div>`;
+
+  out.innerHTML=`
+    <div class="scorebig">
+      <svg class="ring" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line-bright)" stroke-width="9"/>
+        <circle cx="60" cy="60" r="52" fill="none" stroke="${vc}" stroke-width="9" stroke-linecap="round"
+          stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 60 60)"/>
+        <text x="60" y="68" text-anchor="middle" font-family="Clash Display" font-size="32" font-weight="600" fill="${vc}">${score}</text>
+      </svg>
+      <div class="lbl">Clarity score</div>
+      <div class="verdict" style="color:${vc}">${verdict}</div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="n">${wc}</div><div class="l">words</div></div>
+      <div class="metric"><div class="n">${avgLen.toFixed(1)}</div><div class="l">avg words / sentence</div></div>
+      <div class="metric ${fk>11?'flag':'ok'}"><div class="n">${fk}</div><div class="l">reading grade level</div></div>
+      <div class="metric ${ease<50?'mid':'ok'}"><div class="n">${ease}</div><div class="l">reading ease (0-100)</div></div>
+    </div>
+    <div class="issues"><h3>What to look at</h3>${issues}</div>`;
+};
+</script>
+</body>
+</html>
