@@ -151,8 +151,8 @@
 
 <header class="hero wrap">
   <div class="badge reveal d1"><span class="pulse"></span> Five working tools, built and shipped</div>
-  <h1 class="reveal d2">I've taught myself to build software that<br>does the <span class="hl2">mundane work</span><br>so others don't have to.</h1>
-  <p class="reveal d3">This website showcases genuinely helpful tools I created that cover auditing analytics, AI services, and general, routine tasks that should already be commercial products. </p>
+  <h1 class="reveal d2">I build software that<br>does the <span class="hl2">boring work</span><br>so people don't have to.</h1>
+  <p class="reveal d3">I'm an accounting student who codes. These are real tools I built and put online, covering audit analytics, AI utilities, and the kind of everyday problems that should already be automated.</p>
   <div class="hero-actions reveal d4">
     <a href="#tools" class="btn btn-pri">See the tools →</a>
     <a href="#about" class="btn btn-sec">About me</a>
@@ -174,15 +174,15 @@
   <div class="about-box">
     <div>
       <h2>Why I built all this</h2>
-      <p>I'm an accounting student at Fairleigh Dickinson University and interning as an auditor, and I kept noticing that a lot of the labor that individuals do manually could be done by a computer. In turn, I started to build the tools myself.</p>
-      <p>Everything here is something I designed, coded, and deployed on my own in my free time. No templates, no website builders. My goal was to prove that I can take a real-world, potentially niche, issue, and create a solution for it.</p>
-      <p>As more of the world runs on Artificial Intelligence and automation, I want to be one of the people who is able to build and train these systems, not one of the people it replaces.</p>
+      <p>I'm studying accounting at Fairleigh Dickinson and interning as an auditor, but I kept noticing the same thing: a lot of the work people do by hand is work a computer should be doing. So I started building the tools myself.</p>
+      <p>Everything here is something I designed, coded, and deployed on my own. No templates, no website builders. I wanted to show that I can take a messy real-world problem, think it through, and turn it into something that actually works.</p>
+      <p>The goal is simple. As more of the world runs on AI and automation, I want to be one of the people who builds it, not one of the people it replaces.</p>
     </div>
     <div class="about-side">
       <div class="fact"><div class="k">Studying</div><div class="v">B.S. Accounting, FDU</div></div>
       <div class="fact"><div class="k">Currently</div><div class="v">Auditor Intern, DHS CBP Office of Trade</div></div>
       <div class="fact"><div class="k">Stack</div><div class="v">JavaScript, Python, Excel/Power Query</div></div>
-      <div class="fact"><div class="k">Focus</div><div class="v">Audit analytics and applied AI</div></div>
+      <div class="fact"><div class="k">Focus</div><div class="v">Audit analytics + applied AI</div></div>
     </div>
   </div>
 </section>
@@ -230,6 +230,9 @@
     {name:'TimeBlock',kicker:'Productivity',icon:'▦',accent:'#ff5c8a',live:false,
      desc:'Tell it your tasks in plain language and it builds you a time-blocked day that respects your priorities and the hours you actually have.',
      href:'tools/timeblock.html',tag:'Tool'},
+    {name:'SpacePlanner',kicker:'Spatial planning',icon:'⌗',accent:'#3affe0',live:false,
+     desc:'Lay out a room at its real dimensions before you move anything. Build rooms, drop in furniture by exact size, then drag, rotate, and measure to scale. Loaded with a full apartment to start.',
+     href:'tools/spaceplanner.html',tag:'Tool'},
     {name:'AI Assistant',kicker:'Live LLM',icon:'✦',accent:'#3affe0',live:true,
      desc:'A chat assistant wired to a real language model. Ask it anything about these tools or the ideas behind them and it answers in plain English.',
      href:'#',tag:'Live AI',isAI:true},
@@ -297,5 +300,8 @@
   document.getElementById('ai-open-2').onclick=openAI;
 </script>
 
+<script>window.SITE_PAGE="home";</script>
+<script src="playlists.js"></script>
+<script src="player.js"></script>
 </body>
 </html>
