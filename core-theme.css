@@ -1,0 +1,178 @@
+/* ============================================================
+   CORE-STYLE THEME  —  light / pixel / windowed reskin
+   ------------------------------------------------------------
+   One shared stylesheet linked into every page AFTER the page's
+   own <style>, so it overrides the dark theme with a light,
+   monospace, windowed aesthetic. It only changes appearance;
+   all tool logic and content stay intact.
+
+   Linked as <link rel="stylesheet" href="core-theme.css"> on
+   the homepage and "../core-theme.css" on tool pages.
+   ============================================================ */
+
+/* ---- palette: flip dark vars to light Core look ---- */
+:root{
+  --bg:#f4f1ea !important;          /* warm off-white page */
+  --bg-2:#ffffff !important;
+  --surface:#ffffff !important;
+  --surface-2:#faf8f3 !important;
+  --line:#1a1a1a !important;        /* hard black borders */
+  --line-bright:#1a1a1a !important;
+  --text:#15130f !important;        /* near-black ink */
+  --text-dim:#4a463e !important;
+  --text-faint:#7a756a !important;
+  /* keep the bright accents but they now pop against white */
+  --lime:#10110a !important;        /* on light bg, "lime" buttons become ink so they read */
+  --violet:#7c5cff !important;
+  --cyan:#0bb59d !important;
+  --pink:#ff2d77 !important;        /* hot Core pink */
+  --accent:#ff2d77 !important;
+}
+
+/* ---- base ---- */
+html{background:var(--bg) !important;}
+body{
+  background:var(--bg) !important;
+  color:var(--text) !important;
+  font-family:'JetBrains Mono','Courier New',monospace !important;
+  letter-spacing:-0.01em;
+}
+/* kill the dark radial glows */
+body::before{display:none !important;}
+
+/* faint paper grain so white isn't flat */
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(rgba(0,0,0,.035) 1px, transparent 1px);
+  background-size:4px 4px;
+}
+
+/* ---- headings keep Clash but go ink-black ---- */
+h1,h2,h3,.brand{
+  color:var(--text) !important;
+}
+.hero h1, h1{ letter-spacing:-0.02em; }
+/* gradient text spans -> solid pink so they read on white */
+.hero h1 .hl, .hero h1 .hl2, h1 .g, h1 .hl{
+  -webkit-text-fill-color:initial !important;
+  background:none !important;
+  color:var(--pink) !important;
+}
+
+/* ---- nav: solid white bar, hard underline ---- */
+nav{
+  background:#ffffff !important;
+  border-bottom:2px solid #1a1a1a !important;
+  backdrop-filter:none !important;
+}
+.brand .dot{ background:var(--pink) !important; box-shadow:none !important; border-radius:0 !important; }
+.nav-links a{ color:var(--text-dim) !important; }
+.nav-links a:hover{ color:var(--pink) !important; }
+.nav-cta{ background:var(--pink) !important; color:#fff !important; border-radius:0 !important; border:2px solid #1a1a1a !important; }
+.nav-cta:hover{ box-shadow:3px 3px 0 #1a1a1a !important; transform:none !important; }
+.back:hover{ color:var(--pink) !important; }
+
+/* ---- the "window panel" look: hard border + shadow + title dots ---- */
+.panel, .stage, .card, .hintbox, .result, .block .bar, .ans, .chg, .tech{
+  background:#ffffff !important;
+  border:2px solid #1a1a1a !important;
+  border-radius:0 !important;
+  box-shadow:4px 4px 0 rgba(26,26,26,.9) !important;
+}
+/* traffic-light dots on the big panels */
+.panel, .stage, .card{ position:relative; }
+.panel::before, .stage::before, .card::before{
+  content:"";
+  position:absolute; top:10px; left:12px;
+  width:10px; height:10px; border-radius:50%;
+  background:#ff5f57;
+  box-shadow:18px 0 0 #febc2e, 36px 0 0 #28c840;
+  z-index:2;
+}
+/* give panels headroom so content clears the dots */
+.panel, .card{ padding-top:34px !important; }
+
+/* ---- badges / kickers: boxy mono chips ---- */
+.badge, .kick, .chip{
+  background:#fff !important;
+  border:2px solid #1a1a1a !important;
+  border-radius:0 !important;
+  color:var(--text) !important;
+  font-family:'JetBrains Mono',monospace !important;
+  box-shadow:2px 2px 0 var(--pink) !important;
+}
+.badge .pulse, .kick .pulse{ background:var(--pink) !important; }
+
+/* ---- buttons: boxy, hard-shadow, pink primary ---- */
+button, .btn{
+  border-radius:0 !important;
+  font-family:'JetBrains Mono',monospace !important;
+}
+.btn-pri, button.primary, .btn-parse, .copy, .nav-cta{
+  background:var(--pink) !important;
+  color:#fff !important;
+  border:2px solid #1a1a1a !important;
+  box-shadow:3px 3px 0 #1a1a1a !important;
+}
+.btn-pri:hover, button.primary:hover, .btn-parse:hover{
+  transform:translate(1px,1px) !important;
+  box-shadow:2px 2px 0 #1a1a1a !important;
+}
+.btn-sec, button:not(.primary):not(.btn-pri){
+  background:#fff !important;
+  color:var(--text) !important;
+  border:2px solid #1a1a1a !important;
+  box-shadow:2px 2px 0 rgba(26,26,26,.5) !important;
+}
+.btn-sec:hover, button:not(.primary):not(.btn-pri):hover{
+  border-color:var(--pink) !important;
+  color:var(--pink) !important;
+}
+button.on{ background:var(--pink) !important; color:#fff !important; }
+button.danger{ color:#fff !important; background:#d61f3f !important; }
+
+/* ---- inputs ---- */
+input,textarea,select{
+  background:#fff !important;
+  border:2px solid #1a1a1a !important;
+  border-radius:0 !important;
+  color:var(--text) !important;
+  font-family:'JetBrains Mono',monospace !important;
+}
+input:focus,textarea:focus,select:focus{ border-color:var(--pink) !important; outline:none !important; }
+
+/* ---- misc text colors that were light-on-dark ---- */
+.hero p, .panel .sub, .sub, .meta, .viewinfo, footer, .roomname, .help p, .help li{
+  color:var(--text-dim) !important;
+}
+footer{ border-top:2px solid #1a1a1a !important; }
+
+/* ---- tool-page accent text turns Core pink ---- */
+.kick, .help h3, .copy, .chg .ic, #readout{ color:var(--pink) !important; }
+#readout{ color:var(--cyan) !important; }
+
+/* ---- SpacePlanner stage: keep its dark canvas readable ----
+   The 2D/3D planner draws on a dark stage; on white that would
+   look broken, so we keep the stage itself dark but framed. */
+.stage{ background:#0f0f14 !important; color:#f4f4f8 !important; }
+.stage-top{ background:#15151f !important; border-bottom:2px solid #1a1a1a !important; }
+.stage::before{ top:14px; left:14px; }
+
+/* tabs on tools */
+.tab{ border-radius:0 !important; border:2px solid #1a1a1a !important; background:#fff !important; color:var(--text) !important; box-shadow:2px 2px 0 rgba(26,26,26,.4) !important; }
+.tab.on{ background:var(--pink) !important; color:#fff !important; }
+
+/* settings toggles in help */
+.toggle{ border-radius:0 !important; border:2px solid #1a1a1a !important; background:#fff !important; }
+.toggle.on{ background:var(--pink) !important; }
+.toggle::after{ border-radius:0 !important; background:#1a1a1a !important; }
+.toggle.on::after{ background:#fff !important; }
+
+/* ---- ensure all real content sits above the snow canvas ---- */
+nav, header, main, footer, .wrap, .layout, .lab, .grid, .head, .stage{
+  position:relative;
+  z-index:1;
+}
+#snow-canvas{ z-index:0 !important; }
+/* music player must float above everything */
+#abplayer{ z-index:9999 !important; }
