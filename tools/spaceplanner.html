@@ -431,7 +431,7 @@
     {id:uid(), wall:'S', type:'door-in', hinge:'end', offset:300, width:32}
   ];}
 
-  // New visitors start with ONE clean empty room (no sample apartment, no furniture).
+  // New visitors start with ONE clean empty room (used by the Clear button).
   function emptyStart(){
     APT.w=180; APT.h=180; APT.ceil=108;
     return {
@@ -440,7 +440,46 @@
       openings:[]
     };
   }
-  var _start=emptyStart();
+  // A realistic ~560 sq ft 1-bedroom shown as the default example. Furniture is
+  // placed to real-world clearances so nothing overlaps and every piece sits in its room.
+  function realApartment(){
+    APT.w=336; APT.h=240; APT.ceil=108;
+    var rooms=[
+      {id:'living', name:'Living / Dining', x:0,   y:0,   w:204, h:156, ch:108, label:'17\'×13\''},
+      {id:'kitchen',name:'Kitchen',         x:0,   y:156, w:120, h:84,  ch:108, label:'10\'×7\''},
+      {id:'entry',  name:'Entry / Hall',    x:120, y:156, w:84,  h:84,  ch:108, label:'7\'×7\''},
+      {id:'bedroom',name:'Bedroom',         x:204, y:0,   w:132, h:156, ch:108, label:'11\'×13\''},
+      {id:'bath',   name:'Bathroom',        x:204, y:156, w:132, h:84,  ch:108, label:'11\'×7\''}
+    ];
+    var furniture=[
+      {id:uid(), room:'living', name:'Sofa',         w:84, d:36, z:32, x:14,  y:10,  rot:0, color:'#3affe0'},
+      {id:uid(), room:'living', name:'Coffee Table', w:44, d:22, z:16, x:24,  y:78,  rot:0, color:'#2bbfa6'},
+      {id:uid(), room:'living', name:'TV Console',   w:60, d:16, z:20, x:20,  y:134, rot:0, color:'#2bbfa6'},
+      {id:uid(), room:'living', name:'Armchair',     w:30, d:32, z:32, x:110, y:70,  rot:0, color:'#2bbfa6'},
+      {id:uid(), room:'living', name:'Dining Table', w:54, d:36, z:30, x:120, y:12,  rot:0, color:'#2bbfa6'},
+      {id:uid(), room:'kitchen',name:'Counter+Sink', w:60, d:24, z:36, x:8,   y:212, rot:0, color:'#c6ff3a'},
+      {id:uid(), room:'kitchen',name:'Range',        w:30, d:24, z:36, x:72,  y:212, rot:0, color:'#a8d92f'},
+      {id:uid(), room:'kitchen',name:'Counter',      w:72, d:24, z:36, x:44,  y:160, rot:0, color:'#a8d92f'},
+      {id:uid(), room:'kitchen',name:'Fridge',       w:33, d:33, z:68, x:8,   y:160, rot:0, color:'#a8d92f'},
+      {id:uid(), room:'entry',  name:'Console',      w:36, d:14, z:32, x:128, y:160, rot:0, color:'#2bbfa6'},
+      {id:uid(), room:'bedroom',name:'Bed (Queen)',  w:60, d:80, z:24, x:240, y:8,   rot:0, color:'#7c5cff'},
+      {id:uid(), room:'bedroom',name:'Nightstand',   w:18, d:18, z:24, x:218, y:8,   rot:0, color:'#5b4bd6'},
+      {id:uid(), room:'bedroom',name:'Nightstand',   w:18, d:18, z:24, x:304, y:8,   rot:0, color:'#5b4bd6'},
+      {id:uid(), room:'bedroom',name:'Dresser',      w:54, d:18, z:34, x:240, y:130, rot:0, color:'#5b4bd6'},
+      {id:uid(), room:'bath',   name:'Tub / Shower', w:60, d:30, z:22, x:216, y:206, rot:0, color:'#3affe0'},
+      {id:uid(), room:'bath',   name:'Toilet',       w:20, d:28, z:30, x:288, y:208, rot:0, color:'#2bbfa6'},
+      {id:uid(), room:'bath',   name:'Vanity',       w:36, d:21, z:34, x:216, y:160, rot:0, color:'#2bbfa6'}
+    ];
+    var openings=[
+      {id:uid(), wall:'N', type:'window',  hinge:'start', offset:40,  width:72},
+      {id:uid(), wall:'N', type:'window',  hinge:'start', offset:238, width:64},
+      {id:uid(), wall:'S', type:'window',  hinge:'start', offset:20,  width:48},
+      {id:uid(), wall:'S', type:'door-in', hinge:'start', offset:138, width:36},
+      {id:uid(), wall:'S', type:'window',  hinge:'start', offset:290, width:28}
+    ];
+    return {rooms:rooms, furniture:furniture, openings:openings};
+  }
+  var _start=realApartment();
   var rooms=_start.rooms, furniture=_start.furniture, openings=_start.openings;
   var view='all', selected=null, selOpening=null, measureMode=false, tape=null, mode3d=false, showWalls=true;
   var settings={grid:true,labels:true,guides:true,snap:true,units:'ftin'};
