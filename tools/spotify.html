@@ -48,6 +48,12 @@
   .list li .t{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .list li .s{font-size:11.5px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .secthead{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--text-dim);margin:0 0 10px}
+  .moodrow{display:flex;gap:10px;flex-wrap:wrap}
+  .moodbtn{flex:1;min-width:90px;padding:16px 12px;font-family:inherit;font-size:14px;font-weight:700;
+    letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:12px;
+    border:1px solid var(--line-bright);background:var(--surface-2);color:var(--text);transition:.15s}
+  .moodbtn:hover{border-color:var(--green);transform:translateY(-2px)}
+  .moodbtn.on{background:var(--green);color:#04140a;border-color:var(--green)}
   .empty{color:var(--text-faint);font-size:13px;padding:24px 6px;text-align:center}
   /* now playing bar */
   #npbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--surface);border-top:1px solid var(--line);
@@ -133,6 +139,16 @@
         <span class="warn">Heads up:</span> in-browser playback needs Spotify Premium. You can still browse everything here; tap a track to open it in the Spotify app.
       </p>
     </div>
+
+    <section class="panel" id="moodPanel" style="display:none">
+      <div class="secthead">Pick a mood</div>
+      <p class="muted" style="margin:0 0 12px">One tap plays a curated playlist for the vibe. In-browser playback needs Spotify Premium.</p>
+      <div class="moodrow">
+        <button class="moodbtn" data-mood="calm">Calm</button>
+        <button class="moodbtn" data-mood="focused">Focused</button>
+        <button class="moodbtn" data-mood="upbeat">Upbeat</button>
+      </div>
+    </section>
 
     <div class="grid2">
       <section class="panel">
@@ -280,6 +296,7 @@
       $('#mePlan').textContent=PREMIUM?'Premium':(m.product||'free');
       $('#mePlan').className='pill '+(PREMIUM?'ok':'warn');
       $('#premiumNote').style.display=PREMIUM?'none':'block';
+      $('#moodPanel').style.display='block';
       return m;
     });
   }
@@ -404,6 +421,27 @@
     $('#logoutBtn').addEventListener('click',function(){ if(PLAYER){try{PLAYER.disconnect();}catch(e){}} clearTok(); toast('Logged out'); route(); });
     $('#refreshBtn').addEventListener('click',function(){ loadPlaylists().then(function(){toast('Playlists refreshed');}); });
     $('#playAllBtn').addEventListener('click',playAll);
+
+    /* ---- MOOD PLAYLISTS — swap these URIs anytime ----
+       Use user-made PUBLIC playlists (not Spotify editorial 37i9... ones,
+       which the API blocks for third-party apps). To change a mood, paste a
+       playlist link's ID after "spotify:playlist:". Example link:
+       https://open.spotify.com/playlist/1HVP7E8RkpieiGSxvATJbU  ->  ...1HVP7E8RkpieiGSxvATJbU
+    */
+    var MOOD_URIS = {
+      calm:    'spotify:playlist:081dqljJl2aBxMEvivUZ3Y',
+      focused: 'spotify:playlist:2YHJ9HYj50h5eEmSKAySCw',
+      upbeat:  'spotify:playlist:1HVP7E8RkpieiGSxvATJbU'
+    };
+    document.querySelectorAll('.moodbtn').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        if(!PREMIUM){ toast('Spotify Premium is required to play in the browser'); return; }
+        document.querySelectorAll('.moodbtn').forEach(function(b){ b.classList.remove('on'); });
+        btn.classList.add('on');
+        playContext(MOOD_URIS[btn.dataset.mood], undefined);
+      });
+    });
+
     $('#npPlay').addEventListener('click',function(){ if(PLAYER) PLAYER.togglePlay(); });
     $('#npNext').addEventListener('click',function(){ if(PLAYER) PLAYER.nextTrack(); });
     $('#npPrev').addEventListener('click',function(){ if(PLAYER) PLAYER.previousTrack(); });
