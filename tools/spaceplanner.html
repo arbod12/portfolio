@@ -218,7 +218,7 @@
       <button id="measureBtn">📏 Measure</button>
       <button id="clearBtn">Clear tape</button>
     </div>
-    <div class="row"><button id="resetBtn" class="primary full">Reset to imported apartment</button></div>
+    <div class="row"><button id="resetBtn" class="primary full">Clear &amp; start fresh</button></div>
 
     <div class="ptitle">Project file</div>
     <div class="row">
@@ -317,7 +317,7 @@
 
     <h3>Reset</h3>
     <ul>
-      <li><span class="kbd">Reset to imported apartment</span> restores the original floor plan, furniture, and openings. Layouts live in this browser session only, so reset is also your undo-all.</li>
+      <li><span class="kbd">Clear &amp; start fresh</span> wipes everything back to a single empty room so you can start a brand-new layout. Layouts live in this browser session only, so clear is also your undo-all.</li>
     </ul>
 
     <h3>💾 Save &amp; 📂 open project files</h3>
@@ -431,7 +431,17 @@
     {id:uid(), wall:'S', type:'door-in', hinge:'end', offset:300, width:32}
   ];}
 
-  var rooms=baseRooms(), furniture=baseFurn(), openings=baseOpenings();
+  // New visitors start with ONE clean empty room (no sample apartment, no furniture).
+  function emptyStart(){
+    APT.w=180; APT.h=180; APT.ceil=108;
+    return {
+      rooms:[{id:'room1',name:'Room 1',x:0,y:0,w:144,h:144,ch:108,label:''}],
+      furniture:[],
+      openings:[]
+    };
+  }
+  var _start=emptyStart();
+  var rooms=_start.rooms, furniture=_start.furniture, openings=_start.openings;
   var view='all', selected=null, selOpening=null, measureMode=false, tape=null, mode3d=false, showWalls=true;
   var settings={grid:true,labels:true,guides:true,snap:true,units:'ftin'};
 
@@ -481,7 +491,7 @@
     var defs=el('defs',{});
     if(settings.grid){
       var pat=el('pattern',{id:'g',width:12*S,height:12*S,patternUnits:'userSpaceOnUse'});
-      pat.appendChild(el('path',{d:'M '+(12*S)+' 0 L 0 0 0 '+(12*S),fill:'none',stroke:'rgba(58,255,224,.10)','stroke-width':1}));
+      pat.appendChild(el('path',{d:'M '+(12*S)+' 0 L 0 0 0 '+(12*S),fill:'none',stroke:'rgba(0,0,0,.10)','stroke-width':1}));
       defs.appendChild(pat);
     }
     svg.appendChild(defs);
@@ -631,7 +641,7 @@
   function init3d(){
     if(!THREE_OK)return;
     scene=new THREE.Scene();
-    scene.background=new THREE.Color(0x0a0a0f);
+    scene.background=new THREE.Color(0xf4f1ea);
     var vp=document.getElementById('viewport');
     var w=vp.clientWidth||800,h=vp.clientHeight||560;
     camera=new THREE.PerspectiveCamera(45,w/h,1,5000);
@@ -660,12 +670,12 @@
     // floors per room
     rooms.forEach(function(r){ if(view!=='all'&&r.id!==view)return;
       var g=new THREE.PlaneGeometry(r.w,r.h);
-      var m=new THREE.MeshStandardMaterial({color:(view===r.id&&view!=='all')?0x16263a:0x12121d,roughness:.95});
+      var m=new THREE.MeshStandardMaterial({color:(view===r.id&&view!=='all')?0xffe3ee:0xf7f4ec,roughness:.95});
       var mesh=new THREE.Mesh(g,m);mesh.rotation.x=-Math.PI/2;
       mesh.position.set(X(r.x+r.w/2),0,Z(r.y+r.h/2));scene.add(mesh);
       // grid
       if(settings.grid){
-        var grid=new THREE.GridHelper(Math.max(r.w,r.h),Math.round(Math.max(r.w,r.h)/12),0x3affe0,0x26263a);
+        var grid=new THREE.GridHelper(Math.max(r.w,r.h),Math.round(Math.max(r.w,r.h)/12),0xff2d77,0xd8d2c6);
         grid.material.opacity=.12;grid.material.transparent=true;
         grid.position.set(X(r.x+r.w/2),0.4,Z(r.y+r.h/2));
         // clip via scale won't crop; acceptable subtle overflow. keep simple:
@@ -675,7 +685,7 @@
 
     // walls (only whole-apartment perimeter, or single room box)
     if(showWalls){
-      var wallMat=new THREE.MeshStandardMaterial({color:0x1c1c2a,roughness:.9,transparent:true,opacity:.92,side:THREE.DoubleSide});
+      var wallMat=new THREE.MeshStandardMaterial({color:0xe6e1d6,roughness:.9,transparent:true,opacity:.92,side:THREE.DoubleSide});
       var th=4; // wall thickness inches
       if(view==='all'){
         var ch=APT.ceil;
@@ -852,7 +862,7 @@
 
   measureBtn.addEventListener('click',function(){if(mode3d){readout.textContent='Switch to 2D plan to use the tape measure.';return;}measureMode=!measureMode;measureBtn.classList.toggle('on',measureMode);if(measureMode){selected=null;readout.textContent='Measure: press and drag between two points.';}else readout.textContent='Tap a piece to select. Drag to move.';render2d();});
   document.getElementById('clearBtn').addEventListener('click',function(){tape=null;if(!mode3d)render2d();readout.textContent='Tape cleared.';});
-  document.getElementById('resetBtn').addEventListener('click',function(){rooms=baseRooms();furniture=baseFurn();openings=baseOpenings();view='all';selected=null;selOpening=null;tape=null;syncViews();syncOpenings();updateViewInfo();render();readout.textContent='Reset to the imported apartment.';});
+  document.getElementById('resetBtn').addEventListener('click',function(){var s=emptyStart();rooms=s.rooms;furniture=s.furniture;openings=s.openings;view='all';selected=null;selOpening=null;tape=null;syncViews();syncOpenings();updateViewInfo();render();readout.textContent='Cleared. Start building your space.';});
 
   /* 2D/3D toggle */
   function setMode(is3d){
