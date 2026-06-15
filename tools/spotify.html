@@ -1,9 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Spotify Player — Ariel Bodik</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music — Ariel Bodik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Clash+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
@@ -12,477 +14,101 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:'JetBrains Mono',ui-monospace,monospace;background:var(--bg);color:var(--text);min-height:100vh}
-  a{color:inherit}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.5px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em}
   .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--green)}
-  .back{font-size:13px;text-decoration:none;border:1px solid var(--line);padding:8px 14px;border-radius:10px}
-  main{max-width:1080px;margin:0 auto;padding:24px 22px 160px}
-  h1{font-size:26px;margin:0 0 6px}
-  .sub{color:var(--text-dim);font-size:14px;margin:0 0 22px;line-height:1.5}
+  .back{font-size:13px;text-decoration:none;color:var(--text);border:1px solid var(--line);padding:8px 14px;border-radius:10px}
+  .back:hover{border-color:var(--green)}
+  main{max-width:760px;margin:0 auto;padding:30px 22px 80px}
+  h1{font-family:'Clash Display','JetBrains Mono',sans-serif;font-size:34px;margin:0 0 10px}
+  .sub{color:var(--text-dim);font-size:14px;margin:0 0 26px;line-height:1.55}
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px;position:relative}
-  .card{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative}
-  label.fld{display:block;font-size:12px;color:var(--text-dim);margin:0 0 6px;text-transform:uppercase;letter-spacing:.6px}
-  input[type=text]{width:100%;background:var(--bg-2);border:1px solid var(--line-bright);color:var(--text);border-radius:10px;padding:11px 12px;font-family:inherit;font-size:14px}
-  button{font-family:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line-bright);background:var(--surface-2);color:var(--text);padding:11px 16px;font-size:14px;font-weight:600}
-  button:hover{transform:translateY(-1px)}
-  button.green{background:var(--green);border:none;color:#04140a}
-  button.ghost{background:transparent}
-  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .grid2{display:grid;grid-template-columns:320px 1fr;gap:18px}
-  @media(max-width:780px){.grid2{grid-template-columns:1fr}}
-  .muted{color:var(--text-faint);font-size:12.5px;line-height:1.55}
-  .pill{display:inline-block;border:1px solid var(--line-bright);border-radius:999px;padding:3px 10px;font-size:11px;color:var(--text-dim)}
-  .ok{color:var(--green)}.warn{color:var(--lime)}.bad{color:var(--pink)}
-  ol.steps{margin:8px 0 0;padding-left:20px;line-height:1.7;font-size:13.5px}
-  ol.steps code{background:var(--bg-2);border:1px solid var(--line);padding:1px 6px;border-radius:6px;font-size:12.5px;word-break:break-all}
-  .copyfield{display:flex;gap:8px;align-items:stretch;margin-top:6px}
-  .copyfield input{font-size:12.5px}
-  .list{list-style:none;margin:0;padding:0;max-height:520px;overflow:auto}
-  .list li{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:10px;cursor:pointer;border:1px solid transparent}
-  .list li:hover{background:var(--bg-2)}
-  .list li.active{border-color:var(--green);background:var(--bg-2)}
-  .list li img{width:42px;height:42px;border-radius:8px;object-fit:cover;flex:none;background:var(--bg-2)}
-  .list li .meta{min-width:0}
-  .list li .t{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .list li .s{font-size:11.5px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .secthead{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--text-dim);margin:0 0 10px}
   .moodrow{display:flex;gap:10px;flex-wrap:wrap}
-  .moodbtn{flex:1;min-width:90px;padding:16px 12px;font-family:inherit;font-size:14px;font-weight:700;
+  .moodbtn{flex:1;min-width:90px;padding:18px 12px;font-family:inherit;font-size:14px;font-weight:700;
     letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:12px;
     border:1px solid var(--line-bright);background:var(--surface-2);color:var(--text);transition:.15s}
   .moodbtn:hover{border-color:var(--green);transform:translateY(-2px)}
   .moodbtn.on{background:var(--green);color:#04140a;border-color:var(--green)}
-  .empty{color:var(--text-faint);font-size:13px;padding:24px 6px;text-align:center}
-  /* now playing bar */
-  #npbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--surface);border-top:1px solid var(--line);
-    display:flex;align-items:center;gap:16px;padding:12px 84px 12px 18px;transform:translateY(110%);transition:transform .25s}
-  #npbar.show{transform:none}
-  #npbar img{width:48px;height:48px;border-radius:8px;object-fit:cover;flex:none;background:var(--bg-2)}
-  #npbar .info{min-width:0;flex:1 1 220px}
-  #npbar .nt{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #npbar .na{font-size:12px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #npbar .ctrls{display:flex;align-items:center;gap:8px}
-  #npbar .ctrls button{padding:9px 13px}
-  #npbar .vol{display:flex;align-items:center;gap:8px;min-width:120px}
-  #npbar input[type=range]{accent-color:var(--green)}
-  .prog{flex:1 1 160px;display:flex;align-items:center;gap:8px;min-width:120px}
-  .prog .bar{flex:1;height:6px;background:var(--bg-2);border-radius:99px;overflow:hidden;cursor:pointer}
-  .prog .fill{height:100%;width:0;background:var(--green)}
-  .prog .time{font-size:11px;color:var(--text-faint);min-width:38px;text-align:center}
-  @media(max-width:780px){#npbar .vol,.prog{display:none}#npbar{padding-right:72px}}
-  .hidden{display:none !important}
-  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#1a1a22;border:1px solid var(--line-bright);
-    color:var(--text);padding:10px 16px;border-radius:10px;font-size:13px;z-index:9998;opacity:0;transition:opacity .2s;pointer-events:none}
-  .toast.show{opacity:1}
+  .embed-wrap{margin-top:18px;border-radius:14px;overflow:hidden;border:1px solid var(--line);min-height:352px;background:var(--bg-2)}
+  .embed-wrap iframe{display:block;width:100%;border:0}
+  .moodlabel{font-size:13px;color:var(--text-dim);margin:16px 0 0}
+  .moodlabel b{color:var(--green)}
+  .note{color:var(--text-faint);font-size:12px;line-height:1.55;margin-top:16px}
 </style>
-<link rel="stylesheet" href="../core-theme.css">
 </head>
 <body>
-<script>window.SITE_PAGE='spotify';</script>
 
 <header>
-  <div class="brand"><span class="dot"></span> SPOTIFY PLAYER</div>
+  <div class="brand"><span class="dot"></span>Music</div>
   <a class="back" href="../index.html">&larr; back to site</a>
 </header>
 
 <main>
-  <h1>Spotify Player</h1>
-  <p class="sub">Connect your Spotify account and play your own playlists right here. In-browser playback needs Spotify&nbsp;Premium. Your login is handled securely in your browser (PKCE) &mdash; no password ever touches this site.</p>
+  <h1>Music by mood</h1>
+  <p class="sub">Pick a vibe and a Spotify playlist loads right here. Press play and keep browsing. Full tracks play if you are signed into Spotify; everyone else hears previews. No login needed to start.</p>
 
-  <!-- ===== SETUP (no client id yet) ===== -->
-  <section class="panel" id="setupPanel">
-    <div class="secthead">One-time setup</div>
-    <p class="muted">To talk to Spotify, this player needs a free <b>Client ID</b> from a Spotify developer app. You make one in about two minutes, paste it below, and never touch it again (it is stored only in your browser).</p>
-    <ol class="steps">
-      <li>Go to <code>developer.spotify.com/dashboard</code> and log in with your Spotify account.</li>
-      <li>Click <b>Create app</b>. Name it anything (e.g. &ldquo;My Site Player&rdquo;).</li>
-      <li>In <b>Redirect URIs</b>, paste this exact address and click Add:
-        <div class="copyfield"><input type="text" id="redirUri" readonly><button class="ghost" id="copyRedir">Copy</button></div>
-      </li>
-      <li>For <b>Which API/SDKs are you planning to use</b>, tick <b>Web API</b> and <b>Web Playback SDK</b>. Save.</li>
-      <li>Open the app &rarr; <b>Settings</b> &rarr; copy the <b>Client ID</b> and paste it here:
-        <div class="copyfield"><input type="text" id="clientIdInput" placeholder="paste your Client ID"><button class="green" id="saveClient">Save</button></div>
-      </li>
-    </ol>
-    <p class="muted" style="margin-top:12px">New Spotify apps start in <b>Development mode</b>, which only allows accounts you list. In the app go to <b>Settings &rarr; User Management</b> and add your own Spotify name + email so you can log in.</p>
-  </section>
-
-  <!-- ===== CONNECT (client id set, not logged in) ===== -->
-  <section class="panel hidden" id="connectPanel">
-    <div class="secthead">Connect</div>
-    <p class="muted">Client ID saved. Click below to securely connect your Spotify account.</p>
-    <div class="row" style="margin-top:12px">
-      <button class="green" id="loginBtn">Connect Spotify</button>
-      <button class="ghost" id="editClient">Change Client ID</button>
-    </div>
-  </section>
-
-  <!-- ===== CONNECTED ===== -->
-  <section class="hidden" id="appView">
-    <div class="panel">
-      <div class="row" style="justify-content:space-between">
-        <div class="row">
-          <img id="meImg" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--bg-2)">
-          <div>
-            <div id="meName" style="font-weight:700">&hellip;</div>
-            <div class="muted"><span class="pill" id="mePlan">checking plan&hellip;</span> <span id="meDevice" class="pill">no player yet</span></div>
-          </div>
-        </div>
-        <div class="row">
-          <button class="ghost" id="refreshBtn" title="reload your playlists">Refresh</button>
-          <button class="ghost" id="logoutBtn">Log out</button>
-        </div>
-      </div>
-      <p class="muted" id="premiumNote" style="margin-top:12px;display:none">
-        <span class="warn">Heads up:</span> in-browser playback needs Spotify Premium. You can still browse everything here; tap a track to open it in the Spotify app.
-      </p>
+  <section class="panel">
+    <div class="secthead">Pick a mood</div>
+    <div class="moodrow">
+      <button class="moodbtn" data-mood="calm">Calm</button>
+      <button class="moodbtn" data-mood="focused">Focused</button>
+      <button class="moodbtn" data-mood="upbeat">Upbeat</button>
     </div>
 
-    <section class="panel" id="moodPanel" style="display:none">
-      <div class="secthead">Pick a mood</div>
-      <p class="muted" style="margin:0 0 12px">One tap plays a curated playlist for the vibe. In-browser playback needs Spotify Premium.</p>
-      <div class="moodrow">
-        <button class="moodbtn" data-mood="calm">Calm</button>
-        <button class="moodbtn" data-mood="focused">Focused</button>
-        <button class="moodbtn" data-mood="upbeat">Upbeat</button>
-      </div>
-    </section>
+    <p class="moodlabel" id="moodLabel">Now showing: <b>Calm</b></p>
 
-    <div class="grid2">
-      <section class="panel">
-        <div class="secthead">Your playlists</div>
-        <ul class="list" id="plList"><li class="empty">Loading&hellip;</li></ul>
-      </section>
-      <section class="panel">
-        <div class="secthead" id="trackHead">Tracks</div>
-        <div class="row" style="margin-bottom:10px"><button class="green" id="playAllBtn" disabled>&#9654; Play playlist</button></div>
-        <ul class="list" id="trList"><li class="empty">Pick a playlist on the left.</li></ul>
-      </section>
-    </div>
+    <div class="embed-wrap" id="embedWrap"></div>
+
+    <p class="note">
+      These are public Spotify playlists. To change a mood, edit the MOOD_PLAYLISTS list
+      at the bottom of this file and paste a different playlist ID.
+    </p>
   </section>
 </main>
 
-<!-- ===== NOW PLAYING BAR ===== -->
-<div id="npbar">
-  <img id="npImg" alt="">
-  <div class="info">
-    <div class="nt" id="npTitle">Nothing playing</div>
-    <div class="na" id="npArtist"></div>
-  </div>
-  <div class="prog">
-    <span class="time" id="npCur">0:00</span>
-    <div class="bar" id="npBar"><div class="fill" id="npFill"></div></div>
-    <span class="time" id="npDur">0:00</span>
-  </div>
-  <div class="ctrls">
-    <button id="npPrev" title="previous">&#9198;</button>
-    <button id="npPlay" class="green" title="play / pause">&#9654;</button>
-    <button id="npNext" title="next">&#9197;</button>
-  </div>
-  <div class="vol">
-    <span class="muted">VOL</span>
-    <input type="range" id="npVol" min="0" max="100" value="60" style="width:90px">
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<!-- define the SDK-ready hook BEFORE the SDK script so there's no race -->
 <script>
-  window.__sdkReady=false;
-  window.onSpotifyWebPlaybackSDKReady=function(){ window.__sdkReady=true; if(window.__onSdk) window.__onSdk(); };
-</script>
-<script src="https://sdk.scdn.co/spotify-player.js"></script>
+/* ============================================================
+   MOOD PLAYLISTS  —  swap these anytime.
+   Paste the ID from a playlist link:
+   https://open.spotify.com/playlist/XXXXXXXXXXXXXXXXXXXXXX
+                                     ^^^^^^^^^^^^^^^^^^^^^^ this part
+   These are user-made public playlists (work in embeds for everyone).
+   ============================================================ */
+var MOOD_PLAYLISTS = {
+  calm:    '081dqljJl2aBxMEvivUZ3Y',
+  focused: '2YHJ9HYj50h5eEmSKAySCw',
+  upbeat:  '1HVP7E8RkpieiGSxvATJbU'
+};
 
-<script>
-(function(){
-  "use strict";
-  var $=function(s){return document.querySelector(s);};
-  var SCOPES=[
-    'streaming','user-read-email','user-read-private',
-    'playlist-read-private','playlist-read-collaborative',
-    'user-read-playback-state','user-modify-playback-state','user-read-currently-playing'
-  ].join(' ');
-  var AUTH='https://accounts.spotify.com/authorize';
-  var TOKEN='https://accounts.spotify.com/api/token';
-  var API='https://api.spotify.com/v1';
-  var REDIRECT=location.origin+location.pathname; // exact page URL
+var LS_KEY = 'ab_spotify_mood';
 
-  // ---------- tiny helpers ----------
-  function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('show');},2600);}
-  function show(el,on){el.classList[on?'remove':'add']('hidden');}
-  function mmss(ms){ms=Math.max(0,ms||0);var s=Math.floor(ms/1000);return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);}
+function loadMood(mood){
+  var id = MOOD_PLAYLISTS[mood];
+  if(!id) return;
+  var src = 'https://open.spotify.com/embed/playlist/' + id + '?utm_source=generator&theme=0';
+  document.getElementById('embedWrap').innerHTML =
+    '<iframe src="' + src + '" height="352" frameborder="0" ' +
+    'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" ' +
+    'loading="lazy"></iframe>';
+  document.getElementById('moodLabel').innerHTML =
+    'Now showing: <b>' + mood.charAt(0).toUpperCase() + mood.slice(1) + '</b>';
+  document.querySelectorAll('.moodbtn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.mood === mood);
+  });
+  try { localStorage.setItem(LS_KEY, mood); } catch(e){}
+}
 
-  // ---------- storage ----------
-  var LS=window.localStorage;
-  function clientId(){return (LS.getItem('sp_client_id')||'').trim();}
-  function setClientId(v){LS.setItem('sp_client_id',(v||'').trim());}
-  function getTok(){try{return JSON.parse(LS.getItem('sp_tok')||'null');}catch(e){return null;}}
-  function setTok(o){LS.setItem('sp_tok',JSON.stringify(o));}
-  function clearTok(){LS.removeItem('sp_tok');}
+document.querySelectorAll('.moodbtn').forEach(function(btn){
+  btn.addEventListener('click', function(){ loadMood(btn.dataset.mood); });
+});
 
-  // ---------- PKCE ----------
-  function randString(n){var a='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';var s='';var r=new Uint8Array(n);crypto.getRandomValues(r);for(var i=0;i<n;i++)s+=a[r[i]%a.length];return s;}
-  function b64url(buf){var b=btoa(String.fromCharCode.apply(null,new Uint8Array(buf)));return b.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
-  function sha256(str){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));}
-
-  function login(){
-    var cid=clientId(); if(!cid){toast('Save your Client ID first');return;}
-    var verifier=randString(96); var state=randString(16);
-    LS.setItem('sp_verifier',verifier); LS.setItem('sp_state',state);
-    sha256(verifier).then(function(d){
-      var challenge=b64url(d);
-      var u=AUTH+'?'+new URLSearchParams({
-        response_type:'code', client_id:cid, scope:SCOPES,
-        redirect_uri:REDIRECT, code_challenge_method:'S256', code_challenge:challenge, state:state,
-        show_dialog:'true'
-      }).toString();
-      location.href=u;
-    });
-  }
-
-  function exchange(code){
-    var cid=clientId(); var verifier=LS.getItem('sp_verifier')||'';
-    return fetch(TOKEN,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',code:code,redirect_uri:REDIRECT,client_id:cid,code_verifier:verifier})
-    }).then(function(r){return r.json();}).then(function(j){
-      if(j.access_token){ j.expires_at=Date.now()+(j.expires_in-60)*1000; setTok(j); return j; }
-      throw new Error(j.error_description||'token exchange failed');
-    });
-  }
-
-  function refresh(){
-    var t=getTok(); var cid=clientId();
-    if(!t||!t.refresh_token) return Promise.reject(new Error('no refresh token'));
-    return fetch(TOKEN,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'refresh_token',refresh_token:t.refresh_token,client_id:cid})
-    }).then(function(r){return r.json();}).then(function(j){
-      if(j.access_token){ j.refresh_token=j.refresh_token||t.refresh_token; j.expires_at=Date.now()+(j.expires_in-60)*1000; setTok(j); return j; }
-      throw new Error('refresh failed');
-    });
-  }
-
-  // always returns a valid access token (refreshing if needed)
-  function token(){
-    var t=getTok(); if(!t) return Promise.reject(new Error('not logged in'));
-    if(Date.now()<t.expires_at) return Promise.resolve(t.access_token);
-    return refresh().then(function(n){return n.access_token;});
-  }
-
-  // ---------- Spotify Web API ----------
-  function api(path,opts){
-    opts=opts||{};
-    return token().then(function(tk){
-      var h=opts.headers||{}; h.Authorization='Bearer '+tk;
-      if(opts.body && !h['Content-Type']) h['Content-Type']='application/json';
-      return fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined});
-    }).then(function(r){
-      if(r.status===204) return null;
-      if(r.status===401){ return refresh().then(function(){return api(path,opts);}); }
-      if(!r.ok) return r.text().then(function(t){throw new Error('['+r.status+'] '+t.slice(0,140));});
-      var ct=r.headers.get('content-type')||''; return ct.indexOf('json')>=0?r.json():null;
-    });
-  }
-
-  // ---------- app state ----------
-  var ME=null, PLAYLISTS=[], CURPL=null, PLAYER=null, DEVICE=null, PREMIUM=false, lastState=null, progTimer=null;
-
-  function loadMe(){
-    return api('/me').then(function(m){
-      ME=m; PREMIUM=(m.product==='premium');
-      $('#meName').textContent=m.display_name||m.id;
-      $('#meImg').src=(m.images&&m.images[0]&&m.images[0].url)||'';
-      $('#mePlan').textContent=PREMIUM?'Premium':(m.product||'free');
-      $('#mePlan').className='pill '+(PREMIUM?'ok':'warn');
-      $('#premiumNote').style.display=PREMIUM?'none':'block';
-      $('#moodPanel').style.display='block';
-      return m;
-    });
-  }
-
-  function loadPlaylists(){
-    PLAYLISTS=[];
-    function page(url){
-      return api(url).then(function(d){
-        (d.items||[]).forEach(function(p){ if(p) PLAYLISTS.push(p); });
-        if(d.next){ var rel=d.next.replace(API,''); return page(rel); }
-      });
-    }
-    return page('/me/playlists?limit=50').then(renderPlaylists);
-  }
-
-  function renderPlaylists(){
-    var ul=$('#plList'); ul.innerHTML='';
-    if(!PLAYLISTS.length){ ul.innerHTML='<li class="empty">No playlists found on your account.</li>'; return; }
-    PLAYLISTS.forEach(function(p){
-      var li=document.createElement('li'); li.dataset.id=p.id;
-      var img=(p.images&&p.images[0]&&p.images[0].url)||'';
-      li.innerHTML='<img src="'+img+'" alt=""><div class="meta"><div class="t"></div><div class="s"></div></div>';
-      li.querySelector('.t').textContent=p.name;
-      li.querySelector('.s').textContent=(p.tracks&&p.tracks.total||0)+' tracks';
-      li.addEventListener('click',function(){ selectPlaylist(p,li); });
-      ul.appendChild(li);
-    });
-  }
-
-  function selectPlaylist(p,li){
-    CURPL=p;
-    Array.prototype.forEach.call($('#plList').children,function(c){c.classList.remove('active');});
-    if(li) li.classList.add('active');
-    $('#trackHead').textContent=p.name;
-    $('#playAllBtn').disabled=false;
-    var ul=$('#trList'); ul.innerHTML='<li class="empty">Loading tracks&hellip;</li>';
-    api('/playlists/'+p.id+'/tracks?limit=100&fields=items(track(name,uri,artists(name),album(images)))').then(function(d){
-      ul.innerHTML='';
-      var items=(d.items||[]).filter(function(it){return it.track;});
-      if(!items.length){ ul.innerHTML='<li class="empty">This playlist has no playable tracks.</li>'; return; }
-      items.forEach(function(it){
-        var t=it.track; var img=(t.album&&t.album.images&&t.album.images[t.album.images.length-1]&&t.album.images[t.album.images.length-1].url)||'';
-        var li2=document.createElement('li');
-        li2.innerHTML='<img src="'+img+'" alt=""><div class="meta"><div class="t"></div><div class="s"></div></div>';
-        li2.querySelector('.t').textContent=t.name;
-        li2.querySelector('.s').textContent=t.artists.map(function(a){return a.name;}).join(', ');
-        li2.addEventListener('click',function(){ playContext(p.uri,t.uri); });
-        ul.appendChild(li2);
-      });
-    }).catch(function(e){ ul.innerHTML='<li class="empty bad">'+e.message+'</li>'; });
-  }
-
-  // ---------- playback ----------
-  function ensureDeviceThen(fn){
-    if(!PREMIUM){ toast('Spotify Premium is required to play in the browser'); return; }
-    if(DEVICE){ fn(); return; }
-    toast('Starting player&hellip;'); 
-    // player may still be connecting; try shortly
-    setTimeout(function(){ if(DEVICE) fn(); else toast('Player not ready yet — try again in a second'); },1200);
-  }
-  function playContext(contextUri,trackUri){
-    ensureDeviceThen(function(){
-      api('/me/player/play?device_id='+DEVICE,{method:'PUT',body:{context_uri:contextUri,offset:{uri:trackUri}}})
-        .then(function(){ $('#npbar').classList.add('show'); })
-        .catch(function(e){ toast('Could not start: '+e.message); });
-    });
-  }
-  function playAll(){ if(CURPL) playContext(CURPL.uri,undefined); }
-
-  // ---------- Web Playback SDK ----------
-  function initPlayer(){
-    if(PLAYER||!window.Spotify) return;
-    PLAYER=new window.Spotify.Player({
-      name:"Ariel's Website Player",
-      volume:0.6,
-      getOAuthToken:function(cb){ token().then(cb).catch(function(){}); }
-    });
-    PLAYER.addListener('ready',function(e){ DEVICE=e.device_id; $('#meDevice').textContent='player ready'; $('#meDevice').className='pill ok'; });
-    PLAYER.addListener('not_ready',function(){ DEVICE=null; $('#meDevice').textContent='player offline'; $('#meDevice').className='pill'; });
-    PLAYER.addListener('initialization_error',function(e){ console.warn(e); });
-    PLAYER.addListener('authentication_error',function(e){ console.warn(e); toast('Spotify auth error — try logging out and back in'); });
-    PLAYER.addListener('account_error',function(){ toast('Playback needs Spotify Premium'); });
-    PLAYER.addListener('player_state_changed',function(st){ onState(st); });
-    PLAYER.connect();
-  }
-  function onState(st){
-    lastState=st;
-    if(!st){ return; }
-    var cur=st.track_window&&st.track_window.current_track;
-    if(cur){
-      $('#npbar').classList.add('show');
-      $('#npTitle').textContent=cur.name;
-      $('#npArtist').textContent=(cur.artists||[]).map(function(a){return a.name;}).join(', ');
-      $('#npImg').src=(cur.album&&cur.album.images&&cur.album.images[0]&&cur.album.images[0].url)||'';
-      $('#npDur').textContent=mmss(st.duration);
-    }
-    $('#npPlay').innerHTML=st.paused?'&#9654;':'&#10074;&#10074;';
-    runProgress();
-  }
-  function runProgress(){
-    clearInterval(progTimer);
-    if(!lastState||lastState.paused) { paint(); return; }
-    var base=lastState.position, t0=Date.now();
-    function paint2(){
-      var pos=base+(Date.now()-t0);
-      var dur=lastState.duration||1;
-      $('#npFill').style.width=Math.min(100,pos/dur*100)+'%';
-      $('#npCur').textContent=mmss(pos);
-    }
-    paint2(); progTimer=setInterval(paint2,500);
-  }
-  function paint(){ if(!lastState)return; var dur=lastState.duration||1; $('#npFill').style.width=Math.min(100,lastState.position/dur*100)+'%'; $('#npCur').textContent=mmss(lastState.position); }
-
-  // ---------- wire UI ----------
-  function wire(){
-    $('#redirUri').value=REDIRECT;
-    $('#clientIdInput').value=clientId();
-    $('#copyRedir').addEventListener('click',function(){ navigator.clipboard.writeText(REDIRECT).then(function(){toast('Redirect URL copied');}); });
-    $('#saveClient').addEventListener('click',function(){ var v=$('#clientIdInput').value.trim(); if(!v){toast('Paste your Client ID');return;} setClientId(v); toast('Saved'); route(); });
-    $('#editClient').addEventListener('click',function(){ show($('#setupPanel'),true); show($('#connectPanel'),false); });
-    $('#loginBtn').addEventListener('click',login);
-    $('#logoutBtn').addEventListener('click',function(){ if(PLAYER){try{PLAYER.disconnect();}catch(e){}} clearTok(); toast('Logged out'); route(); });
-    $('#refreshBtn').addEventListener('click',function(){ loadPlaylists().then(function(){toast('Playlists refreshed');}); });
-    $('#playAllBtn').addEventListener('click',playAll);
-
-    /* ---- MOOD PLAYLISTS — swap these URIs anytime ----
-       Use user-made PUBLIC playlists (not Spotify editorial 37i9... ones,
-       which the API blocks for third-party apps). To change a mood, paste a
-       playlist link's ID after "spotify:playlist:". Example link:
-       https://open.spotify.com/playlist/1HVP7E8RkpieiGSxvATJbU  ->  ...1HVP7E8RkpieiGSxvATJbU
-    */
-    var MOOD_URIS = {
-      calm:    'spotify:playlist:081dqljJl2aBxMEvivUZ3Y',
-      focused: 'spotify:playlist:2YHJ9HYj50h5eEmSKAySCw',
-      upbeat:  'spotify:playlist:1HVP7E8RkpieiGSxvATJbU'
-    };
-    document.querySelectorAll('.moodbtn').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        if(!PREMIUM){ toast('Spotify Premium is required to play in the browser'); return; }
-        document.querySelectorAll('.moodbtn').forEach(function(b){ b.classList.remove('on'); });
-        btn.classList.add('on');
-        playContext(MOOD_URIS[btn.dataset.mood], undefined);
-      });
-    });
-
-    $('#npPlay').addEventListener('click',function(){ if(PLAYER) PLAYER.togglePlay(); });
-    $('#npNext').addEventListener('click',function(){ if(PLAYER) PLAYER.nextTrack(); });
-    $('#npPrev').addEventListener('click',function(){ if(PLAYER) PLAYER.previousTrack(); });
-    $('#npVol').addEventListener('input',function(){ if(PLAYER) PLAYER.setVolume(this.value/100); });
-    $('#npBar').addEventListener('click',function(ev){ if(!PLAYER||!lastState)return; var r=this.getBoundingClientRect(); var pct=(ev.clientX-r.left)/r.width; PLAYER.seek(Math.floor(pct*(lastState.duration||0))); });
-  }
-
-  // ---------- routing between the 3 screens ----------
-  function route(){
-    var hasClient=!!clientId(), loggedIn=!!getTok();
-    show($('#setupPanel'), !hasClient);
-    show($('#connectPanel'), hasClient && !loggedIn);
-    show($('#appView'), loggedIn);
-    if(loggedIn){
-      window.__onSdk=initPlayer; if(window.__sdkReady) initPlayer();
-      loadMe().then(loadPlaylists).catch(function(e){
-        if((''+e.message).indexOf('not logged in')<0){ toast('Session issue: '+e.message); }
-        clearTok(); route();
-      });
-    }
-  }
-
-  // ---------- handle the redirect back from Spotify ----------
-  function boot(){
-    wire();
-    var qs=new URLSearchParams(location.search);
-    if(qs.get('code') && qs.get('state')===LS.getItem('sp_state')){
-      // clean the URL immediately so the code isn't reused/visible
-      var clean=location.origin+location.pathname; history.replaceState({},'',clean);
-      exchange(qs.get('code')).then(function(){ route(); }).catch(function(e){ toast('Login failed: '+e.message); route(); });
-    } else if(qs.get('error')){
-      toast('Spotify: '+qs.get('error')); history.replaceState({},'',location.origin+location.pathname); route();
-    } else {
-      route();
-    }
-  }
-  boot();
-})();
+var start = 'calm';
+try { start = localStorage.getItem(LS_KEY) || 'calm'; } catch(e){}
+loadMood(start);
 </script>
 
+<link rel="stylesheet" href="../core-theme.css">
 <script src="../snow.js"></script>
 <script src="../a11y.js"></script>
 </body>
