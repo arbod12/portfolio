@@ -153,8 +153,9 @@ footer{ border-top:2px solid #1a1a1a !important; }
 
 /* ---- SpacePlanner stage: light canvas to match the Core look ---- */
 .stage{ background:#ffffff !important; color:#15130f !important; }
-.stage-top{ background:#faf8f3 !important; border-bottom:2px solid #1a1a1a !important; }
-.stage::before{ top:14px; left:14px; }
+.stage-top{ background:#faf8f3 !important; border-bottom:2px solid #1a1a1a !important; padding-left:72px !important; }
+/* dots live in the toolbar's top-left; toolbar buttons are pushed right so they never overlap */
+.stage::before{ top:23px; left:18px; z-index:4; }
 /* room fills + furniture read on white: --room becomes a light tint */
 .stage svg .roomfill{ fill:#faf8f3 !important; stroke:#1a1a1a !important; }
 .stage svg .roomname{ fill:#15130f !important; }
