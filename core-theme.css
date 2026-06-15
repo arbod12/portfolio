@@ -151,12 +151,18 @@ footer{ border-top:2px solid #1a1a1a !important; }
 .kick, .help h3, .copy, .chg .ic, #readout{ color:var(--pink) !important; }
 #readout{ color:var(--cyan) !important; }
 
-/* ---- SpacePlanner stage: keep its dark canvas readable ----
-   The 2D/3D planner draws on a dark stage; on white that would
-   look broken, so we keep the stage itself dark but framed. */
-.stage{ background:#0f0f14 !important; color:#f4f4f8 !important; }
-.stage-top{ background:#15151f !important; border-bottom:2px solid #1a1a1a !important; }
+/* ---- SpacePlanner stage: light canvas to match the Core look ---- */
+.stage{ background:#ffffff !important; color:#15130f !important; }
+.stage-top{ background:#faf8f3 !important; border-bottom:2px solid #1a1a1a !important; }
 .stage::before{ top:14px; left:14px; }
+/* room fills + furniture read on white: --room becomes a light tint */
+.stage svg .roomfill{ fill:#faf8f3 !important; stroke:#1a1a1a !important; }
+.stage svg .roomname{ fill:#15130f !important; }
+.stage svg .roomdim, .stage svg .fdim, .stage svg .flbl{ fill:#4a463e !important; }
+.stage svg .wall{ stroke:#1a1a1a !important; opacity:1 !important; }
+.stage svg .wdim, .stage svg .wname{ fill:#0bb59d !important; }
+.stage svg .tick{ stroke:#1a1a1a !important; }
+.stage svg .rlabel{ stroke:#ffffff !important; }
 
 /* tabs on tools */
 .tab{ border-radius:0 !important; border:2px solid #1a1a1a !important; background:#fff !important; color:var(--text) !important; box-shadow:2px 2px 0 rgba(26,26,26,.4) !important; }
