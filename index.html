@@ -135,7 +135,6 @@
   .ai-input button:disabled{opacity:.5;cursor:default}
 
 </style>
-<link rel="stylesheet" href="core-theme.css">
 </head>
 <body>
 
@@ -151,7 +150,7 @@
 </nav>
 
 <header class="hero wrap">
-  <div class="badge reveal d1"><span class="pulse"></span> Six working tools, built and shipped</div>
+  <div class="badge reveal d1"><span class="pulse"></span> Five working tools, built and shipped</div>
   <h1 class="reveal d2">I build software that<br>does the <span class="hl2">boring work</span><br>so people don't have to.</h1>
   <p class="reveal d3">I'm an accounting student who codes. These are real tools I built and put online, covering audit analytics, AI utilities, and the kind of everyday problems that should already be automated.</p>
   <div class="hero-actions reveal d4">
@@ -159,7 +158,7 @@
     <a href="#about" class="btn btn-sec">About me</a>
   </div>
   <div class="hero-stats reveal d5">
-    <div class="s"><div class="n">6</div><div class="l">tools live</div></div>
+    <div class="s"><div class="n">5</div><div class="l">tools live</div></div>
     <div class="s"><div class="n">100%</div><div class="l">built from scratch</div></div>
     <div class="s"><div class="n">0</div><div class="l">templates used</div></div>
   </div>
@@ -231,9 +230,6 @@
     {name:'TimeBlock',kicker:'Productivity',icon:'▦',accent:'#ff5c8a',live:false,
      desc:'Tell it your tasks in plain language and it builds you a time-blocked day that respects your priorities and the hours you actually have.',
      href:'tools/timeblock.html',tag:'Tool'},
-    {name:'SpacePlanner',kicker:'Spatial planning',icon:'⌗',accent:'#3affe0',live:false,
-     desc:'Lay out a room at its real dimensions before you move anything. Build rooms, drop in furniture by exact size, then drag, rotate, and measure to scale. Loaded with a full apartment to start.',
-     href:'tools/spaceplanner.html',tag:'Tool'},
     {name:'AI Assistant',kicker:'Live LLM',icon:'✦',accent:'#3affe0',live:true,
      desc:'A chat assistant wired to a real language model. Ask it anything about these tools or the ideas behind them and it answers in plain English.',
      href:'#',tag:'Live AI',isAI:true},
@@ -301,10 +297,75 @@
   document.getElementById('ai-open-2').onclick=openAI;
 </script>
 
-<script>window.SITE_PAGE="home";</script>
-<script src="playlists.js"></script>
-<script src="player.js"></script>
-<script src="snow.js"></script>
-<script src="a11y.js"></script>
+<!-- ===== Text size control (accessibility) ===== -->
+<!-- Self-contained. Lets visitors enlarge text site-wide; remembers the choice. -->
+<div id="textSizeCtl" role="group" aria-label="Text size">
+  <span class="tsc-label">Text size</span>
+  <button type="button" class="tsc-btn" data-size="1" aria-label="Normal text size">A</button>
+  <button type="button" class="tsc-btn" data-size="1.15" aria-label="Large text size">A+</button>
+  <button type="button" class="tsc-btn" data-size="1.3" aria-label="Larger text size">A++</button>
+</div>
+<style>
+  #textSizeCtl{
+    position:fixed; left:20px; bottom:20px; z-index:60;
+    display:flex; align-items:center; gap:6px;
+    background:var(--surface,#15151f);
+    border:1px solid var(--line-bright,#34344e);
+    border-radius:40px; padding:7px 10px 7px 14px;
+    box-shadow:0 8px 26px rgba(0,0,0,0.4);
+    font-family:'JetBrains Mono',monospace;
+  }
+  #textSizeCtl .tsc-label{
+    font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--text-faint,#6a6a85); margin-right:4px;
+  }
+  #textSizeCtl .tsc-btn{
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+    border:1px solid var(--line-bright,#34344e); background:transparent;
+    color:var(--text,#f4f4f8); cursor:pointer; border-radius:50%;
+    width:32px; height:32px; line-height:1; padding:0;
+    transition:background .18s, color .18s, border-color .18s; flex-shrink:0;
+  }
+  #textSizeCtl .tsc-btn[data-size="1"]{font-size:12px}
+  #textSizeCtl .tsc-btn[data-size="1.15"]{font-size:13px}
+  #textSizeCtl .tsc-btn[data-size="1.3"]{font-size:15px}
+  #textSizeCtl .tsc-btn:hover{border-color:var(--lime,#c6ff3a)}
+  #textSizeCtl .tsc-btn.active{
+    background:var(--lime,#c6ff3a); color:#0a0a0f; border-color:var(--lime,#c6ff3a);
+  }
+  @media(max-width:560px){
+    #textSizeCtl{left:12px; bottom:12px; padding:6px 8px 6px 11px}
+    #textSizeCtl .tsc-label{display:none}
+  }
+</style>
+<script>
+(function(){
+  var KEY = 'ab-text-size';
+  var ctl = document.getElementById('textSizeCtl');
+  var btns = ctl.querySelectorAll('.tsc-btn');
+
+  // Scale the whole page. zoom is Baseline (2024) across Chrome/Edge/Safari/Firefox 126+.
+  // Because the site is built in px, zoom scales text + layout together cleanly.
+  function apply(size){
+    document.body.style.zoom = size;
+    btns.forEach(function(b){
+      b.classList.toggle('active', b.dataset.size === String(size));
+    });
+  }
+  function save(size){ try { localStorage.setItem(KEY, String(size)); } catch(e){} }
+
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      apply(b.dataset.size); save(b.dataset.size);
+    });
+  });
+
+  var saved = '1';
+  try { saved = localStorage.getItem(KEY) || '1'; } catch(e){}
+  apply(saved);
+})();
+</script>
+<!-- ===== end text size control ===== -->
+
 </body>
 </html>

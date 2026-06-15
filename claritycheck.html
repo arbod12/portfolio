@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClarityCheck — Ariel Bodik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
+    --line:#26263a;--line-bright:#34344e;--text:#f4f4f8;--text-dim:#a0a0b8;--text-faint:#6a6a85;
+    --lime:#c6ff3a;--violet:#7c5cff;--cyan:#3affe0;--pink:#ff5c8a;--accent:#3affe0;
+    --good:#3affe0;--warn:#ffcf3a;--bad:#ff5c8a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(700px circle at 82% 5%,rgba(58,255,224,.12),transparent 50%),radial-gradient(600px circle at 5% 40%,rgba(124,92,255,.07),transparent 45%)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(10,10,15,.7);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1100px;margin:0 auto}
+  .brand{font-family:'Clash Display';font-weight:600;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;background:var(--lime);border-radius:50%;box-shadow:0 0 12px var(--lime)}
+  .back{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);transition:.18s}
+  .back:hover{color:var(--cyan)}
+
+  .head{padding:54px 0 26px}
+  .kick{font-family:'JetBrains Mono';font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-bright);border-radius:20px;padding:6px 13px;margin-bottom:20px;background:var(--surface)}
+  h1{font-family:'Clash Display';font-weight:600;font-size:clamp(32px,5vw,52px);letter-spacing:-.02em;line-height:1.05}
+  h1 .g{background:linear-gradient(120deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .head p{margin-top:16px;color:var(--text-dim);font-size:18px;max-width:620px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:14px 0 60px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .panel h2{font-family:'Clash Display';font-weight:600;font-size:18px;margin-bottom:6px}
+  .panel .sub{color:var(--text-faint);font-size:13px;margin-bottom:16px}
+  textarea{width:100%;min-height:340px;background:var(--bg-2);border:1px solid var(--line-bright);border-radius:10px;color:var(--text);font-family:'Familjen Grotesk';font-size:15px;padding:14px;resize:vertical;line-height:1.6}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .btn{font-family:'Familjen Grotesk';font-weight:600;font-size:15px;padding:13px 22px;border-radius:10px;cursor:pointer;border:none;transition:.18s;display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-top:14px;background:linear-gradient(120deg,var(--cyan),var(--violet));color:#0a0a0f}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(58,255,224,.25)}
+  .sample{font-family:'JetBrains Mono';font-size:12px;color:var(--text-faint);background:transparent;border:none;cursor:pointer;margin-top:10px;text-decoration:underline}
+  .sample:hover{color:var(--cyan)}
+
+  .scorebig{text-align:center;padding:10px 0 18px}
+  .scorebig .ring{width:120px;height:120px;margin:0 auto 8px}
+  .scorebig .lbl{font-family:'JetBrains Mono';font-size:12px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em}
+  .scorebig .verdict{font-family:'Clash Display';font-size:19px;font-weight:600;margin-top:4px}
+
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .metric{background:var(--bg-2);border:1px solid var(--line-bright);border-radius:12px;padding:14px}
+  .metric .n{font-family:'Clash Display';font-size:24px;font-weight:600}
+  .metric .l{font-size:12px;color:var(--text-faint);margin-top:2px}
+  .metric.flag .n{color:var(--bad)}.metric.ok .n{color:var(--good)}.metric.mid .n{color:var(--warn)}
+
+  .issues{margin-top:18px}
+  .issues h3{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+  .iss{display:flex;gap:11px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:14px}
+  .iss .ic{flex-shrink:0}.iss.bad .ic{color:var(--bad)}.iss.warn .ic{color:var(--warn)}.iss.good .ic{color:var(--good)}
+  .iss .tx b{color:var(--text)}
+  .iss .tx{color:var(--text-dim)}
+  .ph{color:var(--text-faint);font-style:italic;text-align:center;padding:60px 20px}
+
+  /* rewrite layer */
+  .rewrite-sec{margin-top:24px;border-top:1px solid var(--line);padding-top:20px}
+  .rewrite-sec h3{font-family:'Clash Display';font-weight:600;font-size:17px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .rewrite-sec h3 .ai{font-family:'JetBrains Mono';font-size:10px;background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;border:1px solid var(--line-bright);border-radius:10px;padding:2px 7px}
+  .rewrite-sec .sub2{color:var(--text-faint);font-size:13px;margin-bottom:16px}
+  .sent{background:var(--bg-2);border:1px solid var(--line-bright);border-radius:12px;padding:15px;margin-bottom:12px}
+  .sent .why{font-family:'JetBrains Mono';font-size:11px;color:var(--warn);margin-bottom:8px}
+  .sent .orig{font-size:14px;color:var(--text-dim);line-height:1.55}
+  .sent .new{font-size:14.5px;color:var(--text);line-height:1.55;background:rgba(58,255,224,.06);border:1px solid rgba(58,255,224,.25);border-radius:9px;padding:11px 13px;margin-top:10px;display:none}
+  .sent .new.show{display:block}
+  .sent .goals{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;align-items:center}
+  .gbtn{font-family:'JetBrains Mono';font-size:11px;padding:6px 12px;border-radius:16px;border:1px solid var(--line-bright);background:var(--surface);color:var(--text-dim);cursor:pointer;transition:.15s}
+  .gbtn:hover{border-color:var(--cyan);color:var(--text)}
+  .gbtn.on{background:linear-gradient(135deg,var(--violet),var(--cyan));color:#0a0a0f;border-color:transparent;font-weight:600}
+  .sact{display:flex;gap:7px;margin-top:10px}
+  .sact button{font-family:'Familjen Grotesk';font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:8px;border:none;cursor:pointer;transition:.15s}
+  .sact .imp{background:linear-gradient(135deg,var(--violet),var(--cyan));color:#0a0a0f}
+  .sact .reg{background:var(--surface-2);color:var(--text);border:1px solid var(--line-bright)}
+  .sact .acc{background:rgba(58,255,224,.15);color:var(--cyan);border:1px solid rgba(58,255,224,.3)}
+  .sact button:disabled{opacity:.5;cursor:default}
+  .sent.accepted{border-color:rgba(58,255,224,.4)}
+  .sent.accepted .orig{text-decoration:line-through;opacity:.5}
+  .fulltext{margin-top:18px}
+  .fulltext .ft-btn{width:100%;font-family:'Familjen Grotesk';font-weight:600;font-size:14px;padding:12px;border-radius:10px;border:1px solid var(--line-bright);background:var(--surface-2);color:var(--text);cursor:pointer;transition:.15s}
+  .fulltext .ft-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+  .fulltext .ft-out{margin-top:12px;background:var(--bg-2);border:1px solid var(--line-bright);border-radius:11px;padding:15px;font-size:14.5px;line-height:1.65;color:var(--text);display:none;white-space:pre-wrap}
+  .fulltext .ft-out.show{display:block}
+  .copy2{font-family:'JetBrains Mono';font-size:12px;color:var(--cyan);background:var(--surface);border:1px solid var(--line-bright);border-radius:7px;padding:7px 12px;cursor:pointer;margin-top:10px}
+  .copy2:hover{border-color:var(--cyan)}
+  .note-local{font-family:'JetBrains Mono';font-size:11px;color:var(--text-faint);margin-top:8px;font-style:italic}
+
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--text-faint);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<nav><div class="nav-in">
+  <a href="../index.html" class="brand"><span class="dot"></span>ARIEL BODIK</a>
+  <a href="../index.html" class="back">← all tools</a>
+</div></nav>
+
+<header class="head wrap">
+  <div class="kick">❡ Text Intelligence</div>
+  <h1>Find out if your writing is <span class="g">actually clear</span>.</h1>
+  <p>Paste an email, an essay, a cover letter, anything. It breaks down how readable your writing really is and points at the specific things making it harder to follow than it needs to be.</p>
+</header>
+
+<main class="grid wrap">
+  <section class="panel">
+    <h2>Your text</h2>
+    <div class="sub">Paste anything. Longer samples give better reads.</div>
+    <textarea id="text" placeholder="Paste your writing here..."></textarea>
+    <button class="btn" id="run">❡ Analyze my writing</button>
+    <button class="sample" id="loadsample">or load a sample paragraph</button>
+  </section>
+
+  <section class="panel">
+    <div id="out"><div class="ph">Your analysis will appear here. Paste some text and hit analyze.</div></div>
+  </section>
+</main>
+
+<footer>Built by Ariel Bodik · ClarityCheck runs entirely in your browser</footer>
+
+<script>
+const SAMPLE=`In light of the fact that the quarterly figures were not submitted in a timely manner by the relevant stakeholders, it has been determined by management that a comprehensive review of the existing processes will need to be undertaken in order to ensure that going forward, deliverables are provided within the agreed-upon timeframes. It should be noted that this is not intended to assign blame, but rather to facilitate the implementation of a more robust framework. The aforementioned review will be conducted by the team and the results will be disseminated accordingly.`;
+
+document.getElementById('loadsample').onclick=()=>{document.getElementById('text').value=SAMPLE;};
+
+const FILLER=['in order to','in light of the fact that','it should be noted that','the aforementioned','going forward','at this point in time','due to the fact that','for the purpose of','in the event that','with regard to','it has been determined','utilize','leverage','synergy','aforementioned','herein','thereof'];
+const PASSIVE=/\b(was|were|is|are|been|being|be)\s+(\w+ed|done|made|taken|given|seen|known|shown|held|conducted|submitted|provided|determined|undertaken|disseminated)\b/gi;
+
+function syllables(w){w=w.toLowerCase().replace(/[^a-z]/g,'');if(w.length<=3)return 1;w=w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');const m=w.match(/[aeiouy]{1,2}/g);return m?m.length:1;}
+
+document.getElementById('run').onclick=()=>{
+  const t=document.getElementById('text').value.trim();
+  const out=document.getElementById('out');
+  if(t.length<40){out.innerHTML='<div class="ph">Give me a bit more to work with, at least a sentence or two.</div>';return;}
+
+  const sentences=t.split(/[.!?]+/).filter(s=>s.trim().length>0);
+  const words=t.split(/\s+/).filter(Boolean);
+  const wc=words.length, sc=sentences.length;
+  const syl=words.reduce((a,w)=>a+syllables(w),0);
+  const avgLen=wc/sc;
+  // Flesch-Kincaid grade
+  const fk=Math.max(1,Math.round(0.39*(wc/sc)+11.8*(syl/wc)-15.59));
+  // Flesch reading ease
+  const ease=Math.round(206.835-1.015*(wc/sc)-84.6*(syl/wc));
+
+  const passiveM=t.match(PASSIVE)||[];
+  const passiveCount=passiveM.length;
+  const longSentences=sentences.filter(s=>s.split(/\s+/).filter(Boolean).length>30);
+  const fillerHits=[];
+  FILLER.forEach(f=>{const re=new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');const m=t.match(re);if(m)fillerHits.push([f,m.length]);});
+  const fillerTotal=fillerHits.reduce((a,h)=>a+h[1],0);
+
+  // build per-sentence flag list for the rewrite layer
+  SENTENCES=sentences.map(s=>s.trim());
+  const PASSIVE_TEST=/\b(was|were|is|are|been|being|be)\s+(\w+ed|done|made|taken|given|seen|known|shown|held|conducted|submitted|provided|determined|undertaken|disseminated)\b/i;
+  FLAGS=SENTENCES.map(s=>{
+    const reasons=[];
+    if(s.split(/\s+/).filter(Boolean).length>30)reasons.push('runs long');
+    if(PASSIVE_TEST.test(s))reasons.push('passive voice');
+    const fl=FILLER.filter(f=>new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i').test(s));
+    if(fl.length)reasons.push('filler: '+fl.slice(0,2).map(x=>'"'+x+'"').join(', '));
+    return reasons;
+  });
+
+  // clarity score 0-100
+  let score=100;
+  score-=Math.max(0,(fk-9))*3;
+  score-=Math.min(25,(passiveCount/sc)*60);
+  score-=Math.min(20,longSentences.length*7);
+  score-=Math.min(20,fillerTotal*3);
+  score=Math.max(12,Math.min(99,Math.round(score)));
+
+  let verdict,vc;
+  if(score>=80){verdict='Crisp and clear';vc='var(--good)';}
+  else if(score>=60){verdict='Pretty readable';vc='var(--cyan)';}
+  else if(score>=40){verdict='Needs tightening';vc='var(--warn)';}
+  else{verdict='Hard to follow';vc='var(--bad)';}
+
+  const circ=2*Math.PI*52, off=circ*(1-score/100);
+  const cls=v=>v?'flag':'ok';
+
+  let issues='';
+  if(fk>11)issues+=`<div class="iss warn"><span class="ic">▲</span><div class="tx"><b>Reading level is high (grade ${fk}).</b> Aim for grade 8 to 10 for most professional writing. Shorter words and sentences pull this down fast.</div></div>`;
+  else issues+=`<div class="iss good"><span class="ic">✓</span><div class="tx"><b>Reading level is solid (grade ${fk}).</b> That lands in a comfortable range for most readers.</div></div>`;
+
+  if(passiveCount>Math.max(2,sc*0.3))issues+=`<div class="iss bad"><span class="ic">●</span><div class="tx"><b>${passiveCount} passive constructions.</b> Passive voice hides who is doing what. Try rewriting so the subject acts: "the team reviewed it" instead of "it was reviewed."</div></div>`;
+  else if(passiveCount>0)issues+=`<div class="iss good"><span class="ic">✓</span><div class="tx"><b>Passive voice is under control (${passiveCount}).</b> A little is fine.</div></div>`;
+
+  if(longSentences.length)issues+=`<div class="iss warn"><span class="ic">▲</span><div class="tx"><b>${longSentences.length} sentence${longSentences.length>1?'s run':' runs'} past 30 words.</b> Long sentences lose people. Break them at the natural "and" or "but."</div></div>`;
+
+  if(fillerTotal)issues+=`<div class="iss bad"><span class="ic">●</span><div class="tx"><b>${fillerTotal} filler phrase${fillerTotal>1?'s':''} found:</b> ${fillerHits.slice(0,4).map(h=>'"'+h[0]+'"').join(', ')}${fillerHits.length>4?'…':''}. These add length without meaning. "In order to" is just "to."</div></div>`;
+  else issues+=`<div class="iss good"><span class="ic">✓</span><div class="tx"><b>No common filler phrases.</b> Nice and direct.</div></div>`;
+
+  out.innerHTML=`
+    <div class="scorebig">
+      <svg class="ring" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line-bright)" stroke-width="9"/>
+        <circle cx="60" cy="60" r="52" fill="none" stroke="${vc}" stroke-width="9" stroke-linecap="round"
+          stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 60 60)"/>
+        <text x="60" y="68" text-anchor="middle" font-family="Clash Display" font-size="32" font-weight="600" fill="${vc}">${score}</text>
+      </svg>
+      <div class="lbl">Clarity score</div>
+      <div class="verdict" style="color:${vc}">${verdict}</div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="n">${wc}</div><div class="l">words</div></div>
+      <div class="metric"><div class="n">${avgLen.toFixed(1)}</div><div class="l">avg words / sentence</div></div>
+      <div class="metric ${fk>11?'flag':'ok'}"><div class="n">${fk}</div><div class="l">reading grade level</div></div>
+      <div class="metric ${ease<50?'mid':'ok'}"><div class="n">${ease}</div><div class="l">reading ease (0-100)</div></div>
+    </div>
+    <div class="issues"><h3>What to look at</h3>${issues}</div>
+    <div id="rewrite-mount"></div>`;
+  renderRewrite();
+};
+
+let SENTENCES=[],FLAGS=[],ACCEPTED={};
+
+function renderRewrite(){
+  const mount=document.getElementById('rewrite-mount');
+  const flaggedIdx=FLAGS.map((r,i)=>r.length?i:-1).filter(i=>i>=0);
+  if(!flaggedIdx.length){
+    mount.innerHTML=`<div class="rewrite-sec"><h3>Sentence rewrites <span class="ai">AI</span></h3><div class="sub2">Nothing flagged for rewriting. Your sentences are clean.</div></div>`;
+    return;
+  }
+  ACCEPTED={};
+  let h=`<div class="rewrite-sec"><h3>Sentence rewrites <span class="ai">AI</span></h3>
+    <div class="sub2">Only the flagged sentences are shown. Pick a goal, generate a clearer version, regenerate if you want another take, then accept the ones you like.</div>`;
+  flaggedIdx.forEach(i=>{
+    h+=`<div class="sent" data-i="${i}">
+      <div class="why">⚠ ${FLAGS[i].join(' · ')}</div>
+      <div class="orig">${escapeHtml(SENTENCES[i])}</div>
+      <div class="new" id="new-${i}"></div>
+      <div class="goals" data-goal="concise">
+        <span class="gbtn on" data-g="concise">Concise</span>
+        <span class="gbtn" data-g="formal">Formal</span>
+        <span class="gbtn" data-g="simple">Simple</span>
+      </div>
+      <div class="sact">
+        <button class="imp" data-act="improve">✦ Improve</button>
+        <button class="reg" data-act="regen" disabled>↻ Regenerate</button>
+        <button class="acc" data-act="accept" disabled>✓ Accept</button>
+      </div>
+    </div>`;
+  });
+  h+=`<div class="fulltext">
+    <button class="ft-btn" id="ft-btn">✦ Regenerate the full text (rewrite only the weak sentences)</button>
+    <div class="ft-out" id="ft-out"></div>
+  </div></div>`;
+  mount.innerHTML=h;
+  wireRewrite();
+}
+
+function escapeHtml(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+function wireRewrite(){
+  document.querySelectorAll('.sent').forEach(card=>{
+    const i=+card.dataset.i;
+    const goals=card.querySelector('.goals');
+    goals.querySelectorAll('.gbtn').forEach(b=>b.onclick=()=>{
+      goals.querySelectorAll('.gbtn').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');goals.dataset.goal=b.dataset.g;
+    });
+    card.querySelector('[data-act=improve]').onclick=()=>doRewrite(i,card);
+    card.querySelector('[data-act=regen]').onclick=()=>doRewrite(i,card);
+    card.querySelector('[data-act=accept]').onclick=()=>{
+      ACCEPTED[i]=card.querySelector('#new-'+i).textContent;
+      card.classList.add('accepted');
+      card.querySelector('[data-act=accept]').textContent='✓ Accepted';
+      card.querySelector('[data-act=accept]').disabled=true;
+    };
+  });
+  document.getElementById('ft-btn').onclick=regenFull;
+}
+
+async function callRewrite(sentence,goal){
+  const r=await fetch('/.netlify/functions/ask',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:'rewrite',sentence,goal})});
+  const data=await r.json();
+  if(data.rewrite)return data.rewrite;
+  throw new Error(data.error||'No rewrite returned');
+}
+
+async function doRewrite(i,card){
+  const goal=card.querySelector('.goals').dataset.goal;
+  const newBox=card.querySelector('#new-'+i);
+  const imp=card.querySelector('[data-act=improve]'),reg=card.querySelector('[data-act=regen]'),acc=card.querySelector('[data-act=accept]');
+  imp.disabled=true;reg.disabled=true;
+  newBox.classList.add('show');newBox.textContent='Rewriting…';
+  try{
+    const rw=await callRewrite(SENTENCES[i],goal);
+    newBox.textContent=rw;
+    imp.textContent='✦ Improve';imp.disabled=false;reg.disabled=false;acc.disabled=false;
+  }catch(e){
+    newBox.textContent='Could not rewrite that one ('+e.message+'). If you are viewing locally, this only works on the live site.';
+    imp.disabled=false;
+  }
+}
+
+async function regenFull(){
+  const btn=document.getElementById('ft-btn'),out=document.getElementById('ft-out');
+  btn.disabled=true;btn.textContent='Rewriting the weak sentences…';
+  out.classList.add('show');out.textContent='Working through the flagged sentences…';
+  const result=[...SENTENCES];
+  try{
+    for(let i=0;i<SENTENCES.length;i++){
+      if(FLAGS[i].length){
+        if(ACCEPTED[i]){result[i]=ACCEPTED[i];continue;}
+        result[i]=await callRewrite(SENTENCES[i],'concise');
+      }
+    }
+    out.innerHTML=escapeHtml(result.map(s=>s.replace(/[.!?]*$/,'')+'.').join(' '))+
+      `<button class="copy2" id="copy2">⧉ Copy revised text</button>`;
+    document.getElementById('copy2').onclick=()=>{
+      const txt=result.map(s=>s.replace(/[.!?]*$/,'')+'.').join(' ');
+      navigator.clipboard.writeText(txt).then(()=>{document.getElementById('copy2').textContent='✓ Copied';});
+    };
+  }catch(e){
+    out.textContent='Hit a snag rewriting the full text ('+e.message+'). Try again in a moment, the free AI tier limits how fast requests can go.';
+  }
+  btn.disabled=false;btn.textContent='✦ Regenerate the full text (rewrite only the weak sentences)';
+}
+</script>
+<!-- ===== Text size control (accessibility) ===== -->
+<!-- Self-contained. Lets visitors enlarge text site-wide; remembers the choice. -->
+<div id="textSizeCtl" role="group" aria-label="Text size">
+  <span class="tsc-label">Text size</span>
+  <button type="button" class="tsc-btn" data-size="1" aria-label="Normal text size">A</button>
+  <button type="button" class="tsc-btn" data-size="1.15" aria-label="Large text size">A+</button>
+  <button type="button" class="tsc-btn" data-size="1.3" aria-label="Larger text size">A++</button>
+</div>
+<style>
+  #textSizeCtl{
+    position:fixed; left:20px; bottom:20px; z-index:60;
+    display:flex; align-items:center; gap:6px;
+    background:var(--surface,#15151f);
+    border:1px solid var(--line-bright,#34344e);
+    border-radius:40px; padding:7px 10px 7px 14px;
+    box-shadow:0 8px 26px rgba(0,0,0,0.4);
+    font-family:'JetBrains Mono',monospace;
+  }
+  #textSizeCtl .tsc-label{
+    font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--text-faint,#6a6a85); margin-right:4px;
+  }
+  #textSizeCtl .tsc-btn{
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+    border:1px solid var(--line-bright,#34344e); background:transparent;
+    color:var(--text,#f4f4f8); cursor:pointer; border-radius:50%;
+    width:32px; height:32px; line-height:1; padding:0;
+    transition:background .18s, color .18s, border-color .18s; flex-shrink:0;
+  }
+  #textSizeCtl .tsc-btn[data-size="1"]{font-size:12px}
+  #textSizeCtl .tsc-btn[data-size="1.15"]{font-size:13px}
+  #textSizeCtl .tsc-btn[data-size="1.3"]{font-size:15px}
+  #textSizeCtl .tsc-btn:hover{border-color:var(--lime,#c6ff3a)}
+  #textSizeCtl .tsc-btn.active{
+    background:var(--lime,#c6ff3a); color:#0a0a0f; border-color:var(--lime,#c6ff3a);
+  }
+  @media(max-width:560px){
+    #textSizeCtl{left:12px; bottom:12px; padding:6px 8px 6px 11px}
+    #textSizeCtl .tsc-label{display:none}
+  }
+</style>
+<script>
+(function(){
+  var KEY = 'ab-text-size';
+  var ctl = document.getElementById('textSizeCtl');
+  var btns = ctl.querySelectorAll('.tsc-btn');
+
+  // Scale the whole page. zoom is Baseline (2024) across Chrome/Edge/Safari/Firefox 126+.
+  // Because the site is built in px, zoom scales text + layout together cleanly.
+  function apply(size){
+    document.body.style.zoom = size;
+    btns.forEach(function(b){
+      b.classList.toggle('active', b.dataset.size === String(size));
+    });
+  }
+  function save(size){ try { localStorage.setItem(KEY, String(size)); } catch(e){} }
+
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      apply(b.dataset.size); save(b.dataset.size);
+    });
+  });
+
+  var saved = '1';
+  try { saved = localStorage.getItem(KEY) || '1'; } catch(e){}
+  apply(saved);
+})();
+</script>
+<!-- ===== end text size control ===== -->
+
+</body>
+</html>
