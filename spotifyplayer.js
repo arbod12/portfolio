@@ -58,6 +58,17 @@
   + '#absp-moods button.on{background:#1db954;color:#04140a;border-color:#1a1a1a}'
   + '#absp-embed{padding:11px 12px 13px}'
   + '#absp-embed iframe{display:block;width:100%;border:0;border-radius:10px}'
+  + '#absp-find{padding:0 12px 12px;display:flex;flex-direction:column;gap:7px}'
+  + '#absp-find .lbl{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#7a756a;font-weight:700;margin-top:2px}'
+  + '#absp-find .row{display:flex;gap:6px}'
+  + '#absp-find input{flex:1;min-width:0;font-family:inherit;font-size:11px;padding:8px 9px;'
+  + 'border:2px solid #1a1a1a;background:#fff;color:#15130f;border-radius:0}'
+  + '#absp-find input:focus{outline:none;border-color:#1db954}'
+  + '#absp-find button{background:#1db954;color:#04140a;border:2px solid #1a1a1a;cursor:pointer;'
+  + 'font-family:inherit;font-size:10px;font-weight:700;text-transform:uppercase;padding:8px 10px;'
+  + 'box-shadow:2px 2px 0 rgba(26,26,26,.4);white-space:nowrap}'
+  + '#absp-find button:hover{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(26,26,26,.4)}'
+  + '#absp-find .err{font-size:10px;color:#d61f3f;min-height:0}'
   + '@media(max-width:520px){#absp-panel{width:280px}}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -73,6 +84,19 @@
     +     '<button data-mood="upbeat">Upbeat</button>'
     +   '</div>'
     +   '<div id="absp-embed"></div>'
+    +   '<div id="absp-find">'
+    +     '<div class="lbl">Search Spotify</div>'
+    +     '<div class="row">'
+    +       '<input id="absp-q" type="text" placeholder="song, artist, playlist..." aria-label="Search Spotify">'
+    +       '<button id="absp-go" type="button">Search</button>'
+    +     '</div>'
+    +     '<div class="lbl">Or paste a Spotify link</div>'
+    +     '<div class="row">'
+    +       '<input id="absp-link" type="text" placeholder="open.spotify.com/playlist/..." aria-label="Paste Spotify link">'
+    +       '<button id="absp-load" type="button">Load</button>'
+    +     '</div>'
+    +     '<div class="err" id="absp-err"></div>'
+    +   '</div>'
     + '</div>';
 
   function ready(){
@@ -107,6 +131,44 @@
         try { localStorage.setItem(LS_MOOD, mood); } catch(e){}
         renderEmbed();
       });
+    });
+
+    // ---- Search Spotify: opens results in a new tab ----
+    function doSearch(){
+      var q = document.getElementById('absp-q').value.trim();
+      if(!q) return;
+      window.open('https://open.spotify.com/search/' + encodeURIComponent(q), '_blank', 'noopener');
+    }
+    document.getElementById('absp-go').addEventListener('click', doSearch);
+    document.getElementById('absp-q').addEventListener('keydown', function(e){
+      if(e.key === 'Enter') doSearch();
+    });
+
+    // ---- Paste a Spotify link: load it into the embed ----
+    function loadLink(){
+      var err = document.getElementById('absp-err');
+      err.textContent = '';
+      var raw = document.getElementById('absp-link').value.trim();
+      if(!raw){ return; }
+      // accept playlist / album / track / artist links or URIs
+      // examples: https://open.spotify.com/playlist/ID , spotify:track:ID
+      var m = raw.match(/(playlist|album|track|artist|episode|show)[/:]([A-Za-z0-9]+)/);
+      if(!m){
+        err.textContent = 'That does not look like a Spotify link.';
+        return;
+      }
+      var type = m[1], id = m[2];
+      var src = 'https://open.spotify.com/embed/' + type + '/' + id + '?utm_source=generator&theme=0';
+      document.getElementById('absp-embed').innerHTML =
+        '<iframe src="' + src + '" height="352" ' +
+        'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" ' +
+        'loading="lazy"></iframe>';
+      document.getElementById('absp-tag').textContent = 'Custom';
+      box.querySelectorAll('#absp-moods button').forEach(function(b){ b.classList.remove('on'); });
+    }
+    document.getElementById('absp-load').addEventListener('click', loadLink);
+    document.getElementById('absp-link').addEventListener('keydown', function(e){
+      if(e.key === 'Enter') loadLink();
     });
 
     // restore state from last page
