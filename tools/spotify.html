@@ -236,7 +236,8 @@
       var challenge=b64url(d);
       var u=AUTH+'?'+new URLSearchParams({
         response_type:'code', client_id:cid, scope:SCOPES,
-        redirect_uri:REDIRECT, code_challenge_method:'S256', code_challenge:challenge, state:state
+        redirect_uri:REDIRECT, code_challenge_method:'S256', code_challenge:challenge, state:state,
+        show_dialog:'true'
       }).toString();
       location.href=u;
     });
