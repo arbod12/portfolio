@@ -67,6 +67,8 @@
    + 'html.a11y-reduce #snow-canvas{display:none !important}'
    + '#a11y-guide{position:fixed;left:0;right:0;height:38px;background:rgba(255,210,58,.22);border-top:2px solid #ffd23a;border-bottom:2px solid #ffd23a;pointer-events:none;z-index:9998;display:none}'
    + 'html.a11y-guide #a11y-guide{display:block}'
+   + '#a11y-btn.a11y-raise{bottom:94px}'
+   + '#a11y-panel.a11y-raise{bottom:156px}'
    + '@media(max-width:520px){#a11y-panel{bottom:78px}}';
   var style = document.createElement('style');
   style.textContent = css;
@@ -94,6 +96,8 @@
   function ready(){
     document.body.appendChild(btn);
     document.body.appendChild(panel);
+    // if the homepage "Ask AI" button is on this page, lift the a11y button above it so they don't overlap
+    if(document.getElementById('ai-fab')){ btn.classList.add('a11y-raise'); panel.classList.add('a11y-raise'); }
     var guide = document.createElement('div'); guide.id='a11y-guide'; document.body.appendChild(guide);
     apply();
     wire(guide);
