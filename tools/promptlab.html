@@ -88,17 +88,17 @@
 <header class="head wrap">
   <div class="kick">⚡ AI Utility</div>
   <h1>Write prompts that <span class="g">actually work</span>.</h1>
-  <p>Most people write prompts the way they'd text a friend. This rebuilds your prompt using the techniques that get better results from any AI model, and shows you exactly what changed and why.</p>
+  <p>A lot of people write prompts the way they would text a friend. This reshapes your prompt using the techniques that get better results from any AI model, and shows you exactly what changed, and why.</p>
 </header>
 
 <main class="lab wrap">
   <section class="panel">
     <h2>Your prompt</h2>
-    <div class="sub">Write it however you normally would. Rough is fine.</div>
+    <div class="sub">Write it however you normally would.</div>
     <label class="fld">What do you want the AI to do?</label>
     <textarea id="raw" placeholder="e.g. write me a cover letter for an accounting internship"></textarea>
     <label class="fld">Any context or details? (optional)</label>
-    <input id="ctx" placeholder="e.g. I'm a junior, I have audit experience, keep it under 200 words">
+    <input id="ctx" placeholder="e.g. I'm a Senior, I have audit experience, keep it under 200 words">
 
     <label class="fld" style="margin-top:20px">Techniques to apply</label>
     <div class="techs" id="techs"></div>
@@ -126,11 +126,11 @@
 
 <script>
 const TECHS=[
-  {id:'role',t:'Role assignment',d:'Tell the AI who to be. Sets expertise and tone.'},
+  {id:'role',t:'Role assignment',d:'Tell the AI who to be. Sets an expectation of tone.'},
   {id:'context',t:'Context framing',d:'Give background so the answer fits your situation.'},
-  {id:'cot',t:'Step-by-step reasoning',d:'Ask it to think before answering. Fewer mistakes.'},
+  {id:'cot',t:'Step-by-step reasoning',d:'Ask it to think before answering.'},
   {id:'format',t:'Output format',d:'Specify exactly how you want the answer structured.'},
-  {id:'constraints',t:'Constraints',d:'Length, tone, what to avoid. Removes guesswork.'},
+  {id:'constraints',t:'Constraints',d:'Length, tone, what to avoid.'},
   {id:'examples',t:'Example slot',d:'Add a spot for a sample so it matches your style.'},
 ];
 const state={};
