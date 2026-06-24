@@ -95,15 +95,14 @@
 <main class="grid wrap">
   <section class="panel">
     <h2>Your tasks</h2>
-    <div class="sub">Type your day in plain language and let AI sort it, or list tasks yourself below.</div>
+    <div class="sub">Type what you need to get done and let AI sort it, or list tasks yourself below.</div>
     <div class="ai-parse">
-      <textarea id="nlp" placeholder="e.g. I need to study for my audit exam, hit the gym, knock out a few internship emails, and grab lunch somewhere in there"></textarea>
+      <textarea id="nlp" placeholder="e.g. I need to study for my audit exam, hit the gym, and grab lunch"></textarea>
       <button class="btn-parse" id="parse">✦ Parse with AI into tasks</button>
       <div class="parse-note" id="parse-note"></div>
     </div>
     <div class="or-divider"><span>or list them yourself</span></div>
     <textarea id="tasks" placeholder="Study for audit exam 90m !high
-Reply to internship emails 30m
 Gym 45m !low
 Finish cost accounting problem set 60m !high
 Lunch 45m
@@ -123,14 +122,14 @@ Read chapter 4 40m !med"></textarea>
     <button class="sample" id="loadsample">or load an example list</button>
     <div class="hintbox">
       <b style="color:var(--text-dim)">How to write tasks:</b><br>
-      Add a duration like <code>45m</code> or <code>1h</code>. Mark importance with <code>!high</code>, <code>!med</code>, or <code>!low</code>. No duration? It assumes 30 minutes. High-priority work gets scheduled into your freshest hours first.
+      Add a duration like <code>45m</code> or <code>1h</code>. Mark importance with <code>!high</code>, <code>!med</code>, or <code>!low</code>. No duration? It assumes 30 minutes. High-priority work gets scheduled into your earlier hours first.
     </div>
   </section>
 
   <section class="panel">
     <h2>Your schedule</h2>
-    <div class="sub">Ordered so the important, demanding work lands early.</div>
-    <div id="out"><div class="ph">Add your tasks and hit build. Your time-blocked day shows up here.</div></div>
+    <div class="sub">Ordered so the important work is prioritized</div>
+    <div id="out"><div class="ph">Add your tasks and hit build. Your AI-built, day of tasks shows up here.</div></div>
   </section>
 </main>
 
