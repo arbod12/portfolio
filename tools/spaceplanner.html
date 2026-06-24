@@ -142,9 +142,9 @@
 </div></nav>
 
 <header class="head wrap">
-  <div class="kick">⌗ Spatial planning</div>
-  <h1>Plan a space in <span class="g">2D and 3D</span>, to the inch.</h1>
-  <p>Build rooms at their real dimensions and furnish them with pieces sized in real inches. Drag, rotate, and measure in a flat floor plan, then flip to a 3D walkthrough and orbit the whole place. Loaded with a full apartment to start. Open the Guide tab for how every tool works.</p>
+  <div class="kick">⌗ Spatial planner</div>
+  <h1>Plan a living space in <span class="g">2D and 3D</span>, to the inch.</h1>
+  <p>Practical living space floor planner with real dimensions, add furnishing pieces to your liking. Drag, rotate, and measure in a flat or 3D version. Pre-loaded with a full apartment to start. Open the Guide tab for further clarification on tools.</p>
   <div class="tabs">
     <button class="tab on" data-tab="planner">◧ Planner</button>
     <button class="tab" data-tab="help">⚙ Guide &amp; Settings</button>
@@ -226,7 +226,7 @@
       <button id="loadProjBtn">📂 Open .splan</button>
       <input type="file" id="loadProj" accept=".splan,.json" style="display:none">
     </div>
-    <div class="row"><span class="viewinfo">Re-openable later to keep editing.</span></div>
+    <div class="row"><span class="viewinfo">Re-open later to keep editing.</span></div>
 
     <div class="ptitle">Export image / PDF</div>
     <div class="row">
@@ -253,7 +253,7 @@
         <button id="mode3d">◳ 3D view</button>
       </div>
       <button id="ceilingBtn" title="show or hide walls in 3D">▣ Walls: on</button>
-      <span class="stage-hint" id="stageHint">Drag furniture to move · tap to select</span>
+      <span class="stage-hint" id="stageHint">Click and drag furniture to move · tap to select</span>
     </div>
     <div id="viewport">
       <svg id="c2d" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -266,8 +266,8 @@
 <div class="help wrap" id="helpTab">
   <div class="card">
     <h2>What SpacePlanner does</h2>
-    <p>SpacePlanner is a to-scale floor planner. Everything you see is drawn at real-world size: one grid square is exactly one foot, and a 60-inch sofa takes up 60 inches of room. If it fits on screen, it fits in the room. You can work in a flat 2D plan or orbit the space in 3D, and the two views stay perfectly in sync.</p>
-    <p>It comes preloaded with a full 1158 sq ft two-bedroom apartment so you have something real to move around immediately. Reset any time from the Planner tab.</p>
+    <p>SpacePlanner is a to-scale floor planner. Everything you see is scaled down and accurate to real-world size: one grid square is exactly one foot. and a 60-inch sofa takes up 60 inches of room. You can work in a flat 2D plan or orbit the space in 3D, and the two views stay in sync.</p>
+    <p>It comes  with a full 1158 sq ft two-bedroom apartment example so you can test the tools immediately. Reset any time from the Planner tab.</p>
   </div>
 
   <div class="card">
@@ -300,44 +300,44 @@
 
     <h3>📏 Measure</h3>
     <ul>
-      <li>Turn it on, then press and drag between any two points. The tape reads the straight-line distance in inches and feet, plus the horizontal and vertical span. <span class="kbd">Clear tape</span> removes it.</li>
+      <li>Turn it on, then press and drag between any two points. The tape reads the straight-line distance in inches and feet, plus the horizontal and vertical distance. <span class="kbd">Clear tape</span> removes it.</li>
     </ul>
 
     <h3>Rooms</h3>
     <ul>
-      <li><b>Add a room</b> by entering a name, width, length, and ceiling height, then <span class="kbd">＋ Add</span>. New rooms appear to scale and you can place furniture in them.</li>
-      <li><b>Delete current room</b> removes the room you are currently viewing and its furniture.</li>
+      <li><b>Add a room</b> by entering a name, width, length, and ceiling height, then <span class="kbd">＋ Add</span>. New rooms are to scale and you are able place furniture in them.</li>
+      <li><b>Delete current room</b> removes the room you are currently viewing and its furniture contents.</li>
     </ul>
 
     <h3>Doors, walkways &amp; windows</h3>
     <ul>
-      <li>Pick a <b>wall</b> (N/E/S/W), a <b>type</b>, a <b>hinge side</b> for doors, then a <b>position</b> along the wall and a <b>width</b>. <span class="kbd">＋ Add</span> places it. Doors cut a real gap and draw their swing; walkways are open gaps; windows sit in the wall.</li>
+      <li>Pick a <b>wall</b> (N/E/S/W), a <b>type</b>, a <b>hinge side</b> for doors, then a <b>position</b> along the wall and a <b>width</b>. <span class="kbd">＋ Add</span> places it. Doors cut a real gap in a wall and will draw their opening swing; walkways are open gaps; windows appear as spaces in the wall.</li>
       <li>Select an existing opening from the dropdown to edit or delete it. Wall dimension labels recalculate automatically.</li>
     </ul>
 
     <h3>Reset</h3>
     <ul>
-      <li><span class="kbd">Clear &amp; start fresh</span> wipes everything back to a single empty room so you can start a brand-new layout. Layouts live in this browser session only, so clear is also your undo-all.</li>
+      <li><span class="kbd">Clear &amp; start fresh</span> deletes everything back to a single empty room so you can start a brand-new layout. Layouts live in this browser session only, so clear is also your undo-all.</li>
     </ul>
 
     <h3>💾 Save &amp; 📂 open project files</h3>
     <ul>
-      <li><span class="kbd">Save .splan</span> downloads your entire project (every room, piece, door, and setting) as a small <code>.splan</code> file. This is the true save: it keeps all the editable data.</li>
-      <li><span class="kbd">Open .splan</span> loads a previously saved file straight back into the planner so you can keep editing and re-export. Because layouts reset on refresh, the <code>.splan</code> file is how you carry work between sessions or share it.</li>
+      <li><span class="kbd">Save .splan</span> downloads your entire project as a small, editable, <code>.splan</code> file.</li>
+      <li><span class="kbd">Open .splan</span> loads a previously saved file  back into the planner so you can keep editing and re-export. Because layouts reset on refresh, the <code>.splan</code> file is how you can continue work between sessions or share it with others.</li>
     </ul>
 
     <h3>Exporting drawings (PNG · JPEG · SVG · PDF)</h3>
     <ul>
       <li><b>PNG</b> — high-resolution image with transparent-free white background, great for dropping into docs or email.</li>
       <li><b>JPEG</b> — same drawing, smaller file, solid white background.</li>
-      <li><b>SVG</b> — vector format that stays razor-sharp at any size and opens in design tools (Illustrator, Figma, Inkscape) for further editing.</li>
+      <li><b>SVG</b> — vector format that stays accurate at any size and opens in design tools (Illustrator, Figma, Inkscape) for further editing.</li>
       <li><b>PDF</b> — a print-ready, letter-size sheet that auto-fits the drawing. With <b>Include title block &amp; scale</b> ticked, it adds a professional title block (plan name, area, overall dimensions, piece count, date) and a graphic 5-foot scale bar.</li>
-      <li>Exports follow the current view: the whole apartment, or a single room if you have one selected. In 3D mode, PNG/JPEG/PDF capture the rendered 3D view instead of the flat plan.</li>
+      <li>Exports follow the current view: the whole apartment, or a single room if you have one selected. In 3D mode, PNG/JPEG/PDF capture the rendered 3D view.</li>
     </ul>
 
     <h3>📋 Furniture schedule (CSV)</h3>
     <ul>
-      <li>Exports an architectural takeoff: every piece with its width, depth, height, footprint in square feet, and rotation, followed by a room-by-room area summary and the total. Opens in Excel or Google Sheets for spec sheets, ordering, or budgeting.</li>
+      <li>Exports an architectural takeoff: every piece with their width, depth, height, footprint in square feet, and rotation, followed by a room-by-room area summary and the total. Able to open in Excel or Google Sheets for spec sheets, ordering, or budgeting.</li>
     </ul>
   </div>
 
@@ -370,7 +370,7 @@
 
   <div class="card">
     <h2>Notes on accuracy</h2>
-    <p>The preloaded apartment is calibrated to its labeled room dimensions: Primary Bedroom 11'2"×13'2", Living/Dining 12'5"×16'4", and Bedroom 2 10'10"×11'10". Other rooms were measured against those references from the floor plan. Furniture uses standard real-world sizes; replace any piece with your own exact measurements for a true fit check. Everything renders client-side and nothing is uploaded.</p>
+    <p>The preloaded apartment is calibrated to its labeled room dimensions: Primary Bedroom 11'2"×13'2", Living/Dining 12'5"×16'4", and Bedroom 2 10'10"×11'10". Other rooms were measured against those references from the floor plan. Furniture uses standard real-world sizes; replace any piece with any sizing. Everything renders client-side and nothing is uploaded.</p>
   </div>
 </div>
 
