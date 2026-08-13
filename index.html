@@ -151,13 +151,19 @@
 </nav>
 
 <header class="hero wrap">
-  <div class="badge reveal d1"><span class="pulse"></span> Six working tools</div>
-  <h1 class="reveal d2">I'm building software that<br>does <span class="hl2">mundane work</span><br>so people don't have to.</h1>
-  <p class="reveal d3">I'm an accounting student who recently learned how to code These are tools I built, covering audit analytics, AI utilities, and the kind of everyday problems that could be automated.</p>
+  <div class="badge reveal d1"><span class="pulse"></span> Thirteen working tools, built and shipped</div>
+  <h1 class="reveal d2">I build software that<br>does the <span class="hl2">boring work</span><br>so people don't have to.</h1>
+  <p class="reveal d3">I'm an accounting student who codes. These are real tools I built and put online, covering audit analytics, AI utilities, and the kind of everyday problems that should already be automated.</p>
   <div class="hero-actions reveal d4">
     <a href="#tools" class="btn btn-pri">See the tools →</a>
     <a href="#about" class="btn btn-sec">About me</a>
   </div>
+  <div class="hero-stats reveal d5">
+    <div class="s"><div class="n">13</div><div class="l">tools live</div></div>
+    <div class="s"><div class="n">100%</div><div class="l">built from scratch</div></div>
+    <div class="s"><div class="n">0</div><div class="l">templates used</div></div>
+  </div>
+</header>
 
 <main class="tools wrap" id="tools">
   <div class="section-label">The toolkit</div>
@@ -168,13 +174,14 @@
   <div class="section-label">About</div>
   <div class="about-box">
     <div>
-      <h2>My motivation for this website</h2>
-      <p>I'm currently studying accounting at Fairleigh Dickinson University, and couldn't help but notice the same pattern in our society: a lot of the work people do by hand is work a computer could be doing. So I started building the tools myself.</p>
-      <p>Everything on this website is something I designed, coded, and deployed on my own. My intention was to show that I can take a real-world problem and solve it using a specific tool.</p>
-      <p>As more of the world runs on AI and automation, I want to be one of the people who helps build it.</p>
+      <h2>Why I built all this</h2>
+      <p>I'm studying accounting at Fairleigh Dickinson and interning as an auditor, but I kept noticing the same thing: a lot of the work people do by hand is work a computer should be doing. So I started building the tools myself.</p>
+      <p>Everything here is something I designed, coded, and deployed on my own. No templates, no website builders. I wanted to show that I can take a messy real-world problem, think it through, and turn it into something that actually works.</p>
+      <p>The goal is simple. As more of the world runs on AI and automation, I want to be one of the people who builds it, not one of the people it replaces.</p>
     </div>
     <div class="about-side">
       <div class="fact"><div class="k">Studying</div><div class="v">B.S. Accounting, FDU</div></div>
+      <div class="fact"><div class="k">Currently</div><div class="v">Auditor Intern, DHS CBP Office of Trade</div></div>
       <div class="fact"><div class="k">Stack</div><div class="v">JavaScript, Python, Excel/Power Query</div></div>
       <div class="fact"><div class="k">Focus</div><div class="v">Audit analytics + applied AI</div></div>
     </div>
@@ -213,23 +220,44 @@
 
   const TOOLS=[
     {name:'LedgerLens',kicker:'Audit analytics',icon:'◎',accent:'#c6ff3a',live:true,
-     desc:'Upload a general ledger and have each transaction tested for fraud and error patterns: Benford\u2019s Law, duplicate payments, threshold gaming, and more. Then read the generated summary of findings.',
+     desc:'Upload a general ledger and it tests every single transaction for fraud and error patterns: Benford\u2019s Law, duplicate payments, threshold gaming, and more. Then it writes up what it found.',
      href:'tools/ledgerlens.html',tag:'Flagship'},
     {name:'PromptLab',kicker:'AI utility',icon:'⚡',accent:'#7c5cff',live:false,
-     desc:'A workbench for writing better AI prompts. Pick the techniques you want, and your prompts will be rebuilt into a sharper version. Then read the exaplantion on how each change helps.',
+     desc:'A workbench for writing better AI prompts. Pick the techniques you want, and it rebuilds your prompt into a sharper version, then explains why each change helps.',
      href:'tools/promptlab.html',tag:'Tool'},
     {name:'ClarityCheck',kicker:'Text intelligence',icon:'❡',accent:'#3affe0',live:false,
-     desc:'Paste any writing and get a read on how clear it actually is: grade level, passive voice, jargon, and sentence flow, with suggestions on potential fixes.',
+     desc:'Paste any writing and get a read on how clear it actually is: grade level, passive voice, jargon, and sentence flow, with specific things to fix.',
      href:'tools/claritycheck.html',tag:'Tool'},
     {name:'TimeBlock',kicker:'Productivity',icon:'▦',accent:'#ff5c8a',live:false,
-     desc:'Tell it your tasks in plain language and it builds you a time-blocked schedule that takes into account your priorities and the time you actually have.',
+     desc:'Tell it your tasks in plain language and it builds you a time-blocked day that respects your priorities and the hours you actually have.',
      href:'tools/timeblock.html',tag:'Tool'},
     {name:'SpacePlanner',kicker:'Spatial planning',icon:'⌗',accent:'#3affe0',live:false,
-     desc:'Plan out a room at its real dimensions. Build rooms, drop in any furniture by exact size, then drag, rotate, and measure to scale. Pre-loaded with a full apartment to start.',
+     desc:'Lay out a room at its real dimensions before you move anything. Build rooms, drop in furniture by exact size, then drag, rotate, and measure to scale. Loaded with a full apartment to start.',
      href:'tools/spaceplanner.html',tag:'Tool'},
     {name:'AI Assistant',kicker:'Live LLM',icon:'✦',accent:'#3affe0',live:true,
-     desc:'A chat assistant designed through a real language model. Ask it anything about these previous tools or the ideas behind them, and it answers in plain English.',
+     desc:'A chat assistant wired to a real language model. Ask it anything about these tools or the ideas behind them and it answers in plain English.',
      href:'#',tag:'Live AI',isAI:true},
+    {name:'CapRoom',kicker:'Sports finance',icon:'◈',accent:'#ff8f3a',live:true,
+     desc:'An NBA salary cap and luxury tax simulator. All 30 teams load contract by contract, and it computes the real bracketed tax bill, apron restrictions, and dead money — then explains what it means for roster moves.',
+     href:'tools/caproom.html',tag:'Sports finance'},
+    {name:'GateDay',kicker:'Venue finance',icon:'▲',accent:'#3affe0',live:true,
+     desc:'Builds the full profit-and-loss statement for a single arena event: gate, premium seating, concessions and sponsorship against variable and fixed cost, down to the break-even attendance.',
+     href:'tools/gateday.html',tag:'Sports finance'},
+    {name:'SuiteLine',kicker:'Premium revenue',icon:'◫',accent:'#c6ff3a',live:true,
+     desc:'Models an arena’s premium seating tier by tier. Normalises every tier to dollars per seat per event, flags the ones priced under market, and ranks where the next dollar of premium revenue actually is.',
+     href:'tools/suiteline.html',tag:'Sports finance'},
+    {name:'IntakeGate',kicker:'AI controls',icon:'⊘',accent:'#7c5cff',live:true,
+     desc:'Invoice extraction treated as untrusted input. Ten deterministic controls — arithmetic tie-outs, vendor master, duplicate register — decide what may post. Anything that fails is held with the reason attached.',
+     href:'tools/intakegate.html',tag:'AI controls'},
+    {name:'CalibrationLab',kicker:'AI controls',icon:'◍',accent:'#3affe0',live:true,
+     desc:'An eval harness that asks whether a model deserves the trust. It measures whether stated confidence is honest, then recommends the auto-approve threshold your error budget allows and shows what it costs in review.',
+     href:'tools/calibrationlab.html',tag:'AI controls'},
+    {name:'MatchPoint',kicker:'AI controls',icon:'⧉',accent:'#ffb14d',live:true,
+     desc:'A three-way match engine. An invoice can be internally perfect and still be wrong, so it matches invoice against purchase order against receiving report and prices every discrepancy as recoverable exposure.',
+     href:'tools/matchpoint.html',tag:'AI controls'},
+    {name:'TieOut',kicker:'Audit analytics',icon:'⇄',accent:'#c6ff3a',live:true,
+     desc:'Bank reconciliation in three passes. Fuzzy proposals must survive an amount and date test before they clear — similarity never clears a match on its own — and the statement proves out to the penny.',
+     href:'tools/tieout.html',tag:'Audit'},
   ];
 
   const grid=document.getElementById('grid');
@@ -256,7 +284,7 @@
 
   function openAI(e){ if(e&&e.preventDefault)e.preventDefault();
     panel.classList.add('open');overlay.classList.add('open');
-    if(!greeted){greeted=true;addMsg('bot',"Hey! I'm the assistant for Ariel's tools. Ask me about any of them or which to try first.");}
+    if(!greeted){greeted=true;addMsg('bot',"Hey! I'm the assistant for Ariel's tools. Ask me what any of them do, how they work, or which to try first.");}
     setTimeout(()=>input.focus(),200);
   }
   function closeAI(){panel.classList.remove('open');overlay.classList.remove('open');}
@@ -295,8 +323,9 @@
 </script>
 
 <script>window.SITE_PAGE="home";</script>
+<script src="playlists.js"></script>
+<script src="player.js"></script>
 <script src="snow.js"></script>
-<script src="spotifyplayer.js"></script>
 <script src="a11y.js"></script>
 </body>
 </html>
