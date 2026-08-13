@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IntakeGate — Ariel Bodik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
+    --line:#26263a;--line-bright:#34344e;--text:#f4f4f8;--text-dim:#a0a0b8;--text-faint:#6a6a85;
+    --lime:#c6ff3a;--violet:#7c5cff;--cyan:#3affe0;--pink:#ff5c8a;--warn:#ffcf3a;--accent:#7c5cff;
+    --pass:#3affe0;--fail:#ff5c8a;--rev:#ffcf3a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(720px circle at 84% 2%,rgba(124,92,255,.10),transparent 50%),radial-gradient(620px circle at 3% 46%,rgba(255,92,138,.06),transparent 45%)}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(10,10,15,.7);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1240px;margin:0 auto}
+  .brand{font-family:'Clash Display';font-weight:600;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;background:var(--lime);border-radius:50%;box-shadow:0 0 12px var(--lime)}
+  .back{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);transition:.18s}
+  .back:hover{color:var(--violet)}
+
+  .head{padding:52px 0 22px}
+  .kick{font-family:'JetBrains Mono';font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;display:inline-flex;gap:8px;border:1px solid var(--line-bright);border-radius:20px;padding:6px 13px;margin-bottom:20px;background:var(--surface)}
+  h1{font-family:'Clash Display';font-weight:600;font-size:clamp(32px,5vw,52px);letter-spacing:-.02em;line-height:1.05}
+  h1 .g{background:linear-gradient(120deg,var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .head p{margin-top:16px;color:var(--text-dim);font-size:18px;max-width:790px}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:22px}
+  .panel h2{font-family:'Clash Display';font-weight:600;font-size:18px;margin-bottom:6px}
+  .panel .sub{color:var(--text-faint);font-size:13px;margin-bottom:18px}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:900px){.cols{grid-template-columns:1fr}}
+  label.fld{display:block;font-size:12.5px;color:var(--text-dim);margin:12px 0 6px;font-weight:500}
+  input,select,textarea{width:100%;background:var(--bg-2);border:1px solid var(--line-bright);border-radius:9px;color:var(--text);font-family:'JetBrains Mono';font-size:13px;padding:10px 12px}
+  textarea{min-height:220px;resize:vertical;line-height:1.55;white-space:pre}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:700px){.g3{grid-template-columns:1fr}}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .chip{font-family:'JetBrains Mono';font-size:11.5px;padding:7px 11px;border-radius:7px;border:1px solid var(--line-bright);
+    background:var(--bg-2);color:var(--text-dim);cursor:pointer;transition:.15s}
+  .chip:hover{border-color:var(--violet);color:var(--text)}
+
+  .btn{font-family:'Familjen Grotesk';font-weight:600;font-size:15px;padding:13px 26px;border-radius:10px;cursor:pointer;border:none;transition:.18s;background:linear-gradient(120deg,var(--violet),var(--pink));color:#0a0a0f;margin-top:16px;width:100%}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(124,92,255,.22)}
+  .btn.ghost{background:none;border:1px solid var(--line-bright);color:var(--text-dim);width:auto;padding:9px 16px;font-size:13px;margin-top:0}
+  .btn.ghost:hover{border-color:var(--pink);color:var(--text);transform:none;box-shadow:none}
+
+  .ph{color:var(--text-faint);font-style:italic;text-align:center;padding:56px 20px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  @media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}}
+  .kpi{border:1px solid var(--line-bright);border-radius:12px;padding:14px 16px;background:var(--surface-2)}
+  .kpi .l{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:5px}
+  .kpi .v{font-family:'Clash Display';font-size:24px;font-weight:600}
+  .kpi .s{font-size:11.5px;color:var(--text-faint);margin-top:3px}
+  .kpi.ok .v{color:var(--pass)} .kpi.bad .v{color:var(--fail)}
+
+  .doc{border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+  .doc .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;background:var(--surface-2);flex-wrap:wrap}
+  .doc .dh .t{font-weight:600;font-size:14.5px}
+  .doc .dh .m{font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-faint)}
+  .verdict{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:6px;white-space:nowrap}
+  .verdict.post{background:rgba(58,255,224,.12);color:var(--pass);border:1px solid rgba(58,255,224,.35)}
+  .verdict.hold{background:rgba(255,92,138,.12);color:var(--fail);border:1px solid rgba(255,92,138,.35)}
+  .verdict.rev{background:rgba(255,207,58,.12);color:var(--rev);border:1px solid rgba(255,207,58,.35)}
+
+  .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .fld-c{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+  .fld-c .k{font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint)}
+  .fld-c .v{font-family:'JetBrains Mono';font-size:13px;margin-top:3px;word-break:break-word}
+  .fld-c.miss{border-color:rgba(255,92,138,.4)} .fld-c.miss .v{color:var(--fail)}
+
+  .ctrls{padding:6px 16px 14px}
+  .ctrl{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+  .ctrl:last-child{border-bottom:none}
+  .ctrl .ic{font-family:'JetBrains Mono';font-size:12px;min-width:16px;margin-top:1px}
+  .ctrl.pass .ic{color:var(--pass)} .ctrl.fail .ic{color:var(--fail)} .ctrl.rev .ic{color:var(--rev)}
+  .ctrl .cb{flex:1}
+  .ctrl .cn{font-size:13px;font-weight:500}
+  .ctrl .cd{font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono';margin-top:2px;line-height:1.55}
+  .ctrl .cid{font-family:'JetBrains Mono';font-size:10px;color:var(--text-faint);letter-spacing:.06em}
+
+  .barh{margin-top:6px}
+  .barh .b{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+  .barh .b .lbl{font-size:12px;color:var(--text-dim);min-width:190px}
+  .barh .b .tr{flex:1;height:9px;background:var(--bg-2);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+  .barh .b .fl{height:100%;background:linear-gradient(90deg,var(--pink),var(--violet))}
+  .barh .b .n{font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-faint);min-width:24px;text-align:right}
+
+  .ai{margin-top:18px;background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--violet);border-radius:10px;padding:15px 17px}
+  .ai .lbl{font-family:'JetBrains Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--violet);margin-bottom:8px}
+  .ai p{font-size:13.5px;color:var(--text-dim);line-height:1.68;margin-bottom:9px}
+  .ai p:last-child{margin-bottom:0}
+  .ai b{color:var(--text)}
+  .note{font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-dim);background:var(--bg-2);border:1px solid var(--line);
+    border-left:3px solid var(--cyan);border-radius:9px;padding:11px 13px;margin-top:14px;line-height:1.65}
+  .disc{font-family:'JetBrains Mono';font-size:11px;color:var(--text-faint);line-height:1.6;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--text-faint);font-size:13px;text-align:center}
+</style>
+<link rel="stylesheet" href="../core-theme.css">
+</head>
+<body>
+<nav><div class="nav-in">
+  <a href="../index.html" class="brand"><span class="dot"></span>ARIEL BODIK</a>
+  <a href="../index.html" class="back">← all tools</a>
+</div></nav>
+
+<header class="head wrap">
+  <div class="kick">◆ AI Controls</div>
+  <h1>IntakeGate <span class="g">AP intake under control</span></h1>
+  <p>Invoice extraction treated as untrusted input. Extracted fields pass through nine deterministic controls — arithmetic tie-outs, schema completeness, vendor master match, PO format, period and duplicate checks — before anything is allowed to post. Clean documents flow straight through; anything that fails a control is held with the reason attached.</p>
+</header>
+
+<div class="wrap">
+  <div class="cols">
+    <div class="panel">
+      <h2>Document</h2>
+      <div class="sub">Paste invoice text, or load a sample.</div>
+      <div class="chips" id="samples"></div>
+      <label class="fld">Invoice text</label>
+      <textarea id="src" spellcheck="false"></textarea>
+      <button class="btn" id="run">Extract &amp; run controls</button>
+      <button class="btn ghost" id="runall" style="margin-top:10px;width:100%">Run the whole sample batch</button>
+      <button class="btn ghost" id="reset" style="margin-top:8px;width:100%">Clear duplicate register (<span id="regn">0</span> on file)</button>
+    </div>
+
+    <div class="panel">
+      <h2>Control parameters</h2>
+      <div class="sub">The policy the controls enforce.</div>
+      <div class="g3">
+        <div><label class="fld">Period start</label><input type="date" id="pstart" value="2026-07-01"></div>
+        <div><label class="fld">Period end</label><input type="date" id="pend" value="2026-07-31"></div>
+        <div><label class="fld">Tolerance $</label><input type="number" id="tol" value="0.01" step="0.01"></div>
+      </div>
+      <div class="g3">
+        <div><label class="fld">Approval limit $</label><input type="number" id="limit" value="10000"></div>
+        <div><label class="fld">Max tax rate %</label><input type="number" id="maxtax" value="15" step="0.1"></div>
+        <div><label class="fld">PO pattern</label><input type="text" id="popat" value="PO-\d{4}-\d{4}"></div>
+      </div>
+      <label class="fld">Approved vendor master (one per line)</label>
+      <textarea id="vendors" style="min-height:120px">ACME OFFICE SUPPLY CO.
+NORTHSTAR LOGISTICS LLC
+BRIDGEPORT DATA SERVICES
+HUDSON VALLEY PRINTWORKS
+KEYSTONE FACILITIES GROUP</textarea>
+      <div class="note">Controls are pure functions in this page's source. The extraction step is swappable — a model can replace the local parser without touching a single control, which is the point: the model is never trusted, only checked.</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Control results</h2>
+    <div class="sub">Field extraction, control outcomes, and the posting decision.</div>
+    <div id="out"><div class="ph">Load a sample and run the controls.</div></div>
+  </div>
+</div>
+
+<footer class="wrap">IntakeGate · an AI-controls tool by Ariel Bodik · arielbodik.com</footer>
+
+<script>
+/* =========================================================================
+   IntakeGate
+   Architecture: EXTRACT (untrusted) -> VALIDATE (deterministic) -> DECIDE
+   No control consults the extractor's own opinion of its accuracy. Every
+   control is an independent test the extraction has to survive.
+   ========================================================================= */
+
+/* ---------- sample documents (synthetic) ---------- */
+var SAMPLES=[
+{n:'Clean invoice',t:
+`ACME OFFICE SUPPLY CO.
+1420 Industrial Pkwy, Newark NJ 07102
+
+INVOICE
+Invoice #: INV-88421
+Date: 2026-07-14
+PO Number: PO-2026-3391
+Terms: Net 30
+
+QTY  DESCRIPTION                UNIT      AMOUNT
+10   Copy paper, case           42.50     425.00
+4    Toner cartridge HC        118.75     475.00
+2    Desk chair, ergonomic     249.00     498.00
+
+Subtotal:      1398.00
+Tax (6.625%):    92.62
+Total:         1490.62`},
+
+{n:'Line items do not foot',t:
+`NORTHSTAR LOGISTICS LLC
+88 Dock Road, Elizabeth NJ 07201
+
+INVOICE
+Invoice #: NS-40127
+Date: 2026-07-22
+PO Number: PO-2026-4410
+Terms: Net 45
+
+QTY  DESCRIPTION                UNIT      AMOUNT
+1    Freight, inbound LTL      2150.00   2150.00
+1    Fuel surcharge             318.00    318.00
+3    Pallet handling             45.00    135.00
+
+Subtotal:      2703.00
+Tax (0%):         0.00
+Total:         2703.00`},
+
+{n:'Unknown vendor + bad PO',t:
+`QUICKSHIP SUPPLY PARTNERS
+17 Commerce Way, Edison NJ 08817
+
+INVOICE
+Invoice #: QS-2291
+Date: 2026-07-09
+PO Number: 20263391
+Terms: Net 30
+
+QTY  DESCRIPTION                UNIT      AMOUNT
+6    Shipping labels, roll       28.00    168.00
+2    Thermal printer            415.00    830.00
+
+Subtotal:       998.00
+Tax (6.625%):    66.12
+Total:         1064.12`},
+
+{n:'Duplicate of INV-88421',t:
+`ACME OFFICE SUPPLY CO.
+1420 Industrial Pkwy, Newark NJ 07102
+
+INVOICE
+Invoice #: INV-88421
+Date: 2026-07-16
+PO Number: PO-2026-3391
+Terms: Net 30
+
+QTY  DESCRIPTION                UNIT      AMOUNT
+10   Copy paper, case           42.50     425.00
+4    Toner cartridge HC        118.75     475.00
+2    Desk chair, ergonomic     249.00     498.00
+
+Subtotal:      1398.00
+Tax (6.625%):    92.62
+Total:         1490.62`},
+
+{n:'Over approval limit + stale date',t:
+`BRIDGEPORT DATA SERVICES
+900 Raritan Center, Edison NJ 08837
+
+INVOICE
+Invoice #: BDS-11902
+Date: 2026-05-28
+PO Number: PO-2026-2087
+Terms: Net 60
+
+QTY  DESCRIPTION                UNIT      AMOUNT
+1    Annual data licence      41500.00  41500.00
+1    Implementation services   6800.00    6800.00
+
+Subtotal:     48300.00
+Tax (0%):         0.00
+Total:        48300.00`},
+
+{n:'Tax does not tie',t:
+`HUDSON VALLEY PRINTWORKS
+55 Mill Street, Poughkeepsie NY 12601
+
+INVOICE
+Invoice #: HVP-7734
+Date: 2026-07-30
+PO Number: PO-2026-5502
+Terms: Net 30
+
+QTY  DESCRIPTION                UNIT      AMOUNT
+2000 Brochure, 4c gloss          0.62    1240.00
+1    Design setup               450.00     450.00
+
+Subtotal:      1690.00
+Tax (8.875%):   150.00
+Total:         1855.00`}
+];
+
+var chips=document.getElementById('samples');
+SAMPLES.forEach(function(s,i){
+  var b=document.createElement('button');
+  b.className='chip'; b.textContent=s.n;
+  b.onclick=function(){ document.getElementById('src').value=s.t; };
+  chips.appendChild(b);
+});
+document.getElementById('src').value=SAMPLES[0].t;
+
+/* ---------- EXTRACTION (the untrusted step) ----------
+   Local deterministic parser. Swap in a model by replacing this one
+   function: it must return the same shape, and it gets no special trust. */
+function extract(text){
+  function grab(re){ var m=text.match(re); return m?m[1].trim():null; }
+  function num(s){ if(s==null) return null; var v=parseFloat(String(s).replace(/[$,]/g,'')); return isNaN(v)?null:v; }
+
+  var lines=text.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
+  var vendor=lines.length?lines[0]:null;
+
+  var items=[];
+  text.split(/\r?\n/).forEach(function(l){
+    /* qty  description  unit  amount */
+    var m=l.match(/^\s*(\d+)\s+(.+?)\s{2,}([\d,]+\.\d{2})\s{2,}([\d,]+\.\d{2})\s*$/);
+    if(m) items.push({qty:parseInt(m[1],10),desc:m[2].trim(),unit:num(m[3]),amount:num(m[4])});
+  });
+
+  return {
+    vendor:vendor,
+    invoiceNo:grab(/Invoice\s*#\s*:\s*(.+)/i),
+    date:grab(/^\s*Date\s*:\s*(.+)$/im),
+    po:grab(/PO\s*Number\s*:\s*(.+)/i),
+    terms:grab(/Terms\s*:\s*(.+)/i),
+    items:items,
+    subtotal:num(grab(/Subtotal\s*:\s*([\d,]+\.\d{2})/i)),
+    taxRate:num(grab(/Tax\s*\(\s*([\d.]+)\s*%\s*\)/i)),
+    tax:num(grab(/Tax[^:]*:\s*([\d,]+\.\d{2})/i)),
+    total:num(grab(/^\s*Total\s*:\s*([\d,]+\.\d{2})/im))
+  };
+}
+
+/* ---------- CONTROLS (deterministic, independent) ---------- */
+var seen={};   /* duplicate register for the session */
+
+function norm(s){ return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+function lev(a,b){
+  a=norm(a); b=norm(b);
+  var m=a.length,n=b.length,d=[],i,j;
+  for(i=0;i<=m;i++){d[i]=[i];}
+  for(j=0;j<=n;j++){d[0][j]=j;}
+  for(i=1;i<=m;i++)for(j=1;j<=n;j++)
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[m][n];
+}
+function money(n){ return n==null?'—':'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function runControls(f,cfg){
+  var C=[];
+  function add(id,name,status,detail){ C.push({id:id,name:name,status:status,detail:detail}); }
+
+  /* C-01 schema completeness */
+  var req=['vendor','invoiceNo','date','total','subtotal'];
+  var missing=req.filter(function(k){ return f[k]==null||f[k]===''; });
+  add('C-01','Schema completeness',missing.length?'fail':'pass',
+    missing.length?('Missing required field(s): '+missing.join(', ')):'All required fields present.');
+
+  /* C-02 line items foot to subtotal */
+  if(f.items.length&&f.subtotal!=null){
+    var sum=f.items.reduce(function(s,i){return s+(i.amount||0);},0);
+    var diff=Math.round((sum-f.subtotal)*100)/100;
+    add('C-02','Line items foot to subtotal',Math.abs(diff)<=cfg.tol?'pass':'fail',
+      f.items.length+' line'+(f.items.length===1?'':'s')+' sum to '+money(sum)+' against a stated subtotal of '
+      +money(f.subtotal)+'. Difference '+money(diff)+'.');
+  } else add('C-02','Line items foot to subtotal','fail','No line items parsed, or no subtotal to test against.');
+
+  /* C-03 extension check: qty x unit = amount */
+  var badExt=f.items.filter(function(i){
+    return i.unit!=null&&i.amount!=null&&Math.abs(i.qty*i.unit-i.amount)>cfg.tol; });
+  add('C-03','Line extensions recompute',f.items.length?(badExt.length?'fail':'pass'):'rev',
+    f.items.length? (badExt.length? badExt.length+' line(s) where qty × unit does not equal the stated amount: '
+        +badExt.map(function(i){return i.desc;}).join('; ')
+      : 'Every line recomputes from quantity × unit price.')
+    : 'No line items parsed to test.');
+
+  /* C-04 subtotal + tax = total */
+  if(f.subtotal!=null&&f.total!=null){
+    var t=f.tax||0, d2=Math.round((f.subtotal+t-f.total)*100)/100;
+    add('C-04','Subtotal + tax ties to total',Math.abs(d2)<=cfg.tol?'pass':'fail',
+      money(f.subtotal)+' + '+money(t)+' = '+money(f.subtotal+t)+' against a stated total of '+money(f.total)
+      +'. Difference '+money(d2)+'.');
+  } else add('C-04','Subtotal + tax ties to total','fail','Subtotal or total missing.');
+
+  /* C-05 tax rate recomputes and is plausible */
+  if(f.subtotal!=null&&f.tax!=null){
+    var implied=f.subtotal>0?(f.tax/f.subtotal*100):0;
+    var stated=f.taxRate;
+    var rateOK=stated==null||Math.abs(implied-stated)<=0.05;
+    var plaus=implied<=cfg.maxtax+0.001;
+    add('C-05','Tax recomputes to stated rate',(rateOK&&plaus)?'pass':'fail',
+      'Implied rate '+implied.toFixed(3)+'%'+(stated!=null?(' against a stated '+stated+'%'):'')
+      +(plaus?'':'; exceeds the '+cfg.maxtax+'% policy ceiling')
+      +(rateOK?'.':'; stated and implied rates disagree.'));
+  } else add('C-05','Tax recomputes to stated rate','rev','Tax or subtotal not present to test.');
+
+  /* C-06 invoice date valid and in period */
+  var dt=f.date?new Date(f.date):null;
+  if(dt&&!isNaN(dt.getTime())){
+    var inP=dt>=cfg.pstart&&dt<=cfg.pend;
+    add('C-06','Invoice date within open period',inP?'pass':'rev',
+      f.date+(inP?' falls inside the open period.':' falls outside '+cfg.pstartS+' to '+cfg.pendS+'; needs period reassignment.'));
+  } else add('C-06','Invoice date within open period','fail','Date missing or unparseable.');
+
+  /* C-07 vendor master match */
+  if(f.vendor){
+    var best=null,bd=1e9;
+    cfg.vendors.forEach(function(v){ var d=lev(f.vendor,v); if(d<bd){bd=d;best=v;} });
+    var maxLen=Math.max(norm(f.vendor).length,norm(best||'').length)||1;
+    var sim=1-bd/maxLen;
+    add('C-07','Vendor matches approved master',bd===0?'pass':(sim>=0.85?'rev':'fail'),
+      bd===0?('Exact match to “'+best+'”.')
+        :(sim>=0.85?('Closest master record “'+best+'” at '+(sim*100).toFixed(0)+'% similarity; confirm before posting.')
+                   :('No master record within tolerance. Closest was “'+best+'” at '+(sim*100).toFixed(0)+'%.')));
+  } else add('C-07','Vendor matches approved master','fail','No vendor extracted.');
+
+  /* C-08 PO format */
+  if(f.po){
+    var re=null; try{ re=new RegExp('^'+cfg.popat+'$'); }catch(e){ re=null; }
+    var ok=re?re.test(f.po):false;
+    add('C-08','PO reference well formed',ok?'pass':'fail',
+      '“'+f.po+'” '+(ok?'matches':'does not match')+' the required pattern '+cfg.popat+'.');
+  } else add('C-08','PO reference well formed','rev','No PO number on the document; non-PO invoices need manual approval.');
+
+  /* C-09 duplicate register */
+  var key=norm(f.vendor)+'|'+norm(f.invoiceNo);
+  if(f.vendor&&f.invoiceNo){
+    if(seen[key]) add('C-09','Not a duplicate submission','fail',
+      'Vendor and invoice number already processed this session'+(seen[key].total!=null?(' at '+money(seen[key].total)):'')+'.');
+    else add('C-09','Not a duplicate submission','pass','No prior submission with this vendor and invoice number.');
+  } else add('C-09','Not a duplicate submission','rev','Cannot test without both vendor and invoice number.');
+
+  /* C-10 approval authority */
+  if(f.total!=null){
+    var over=f.total>cfg.limit;
+    add('C-10','Within delegated approval limit',over?'rev':'pass',
+      money(f.total)+(over?(' exceeds the '+money(cfg.limit)+' limit; requires the next approval tier.')
+                          :(' is inside the '+money(cfg.limit)+' limit.')));
+  } else add('C-10','Within delegated approval limit','fail','No total to test.');
+
+  if(f.vendor&&f.invoiceNo&&!seen[key]) seen[key]={total:f.total};
+  return C;
+}
+
+function decide(C){
+  if(C.some(function(c){return c.status==='fail';})) return 'hold';
+  if(C.some(function(c){return c.status==='rev';})) return 'rev';
+  return 'post';
+}
+
+/* ---------- render ---------- */
+function cfgRead(){
+  var ps=new Date(document.getElementById('pstart').value||'2026-07-01');
+  var pe=new Date(document.getElementById('pend').value||'2026-07-31');
+  pe.setHours(23,59,59);
+  return {
+    tol:parseFloat(document.getElementById('tol').value)||0.01,
+    limit:parseFloat(document.getElementById('limit').value)||0,
+    maxtax:parseFloat(document.getElementById('maxtax').value)||0,
+    popat:document.getElementById('popat').value.trim(),
+    pstart:ps,pend:pe,
+    pstartS:document.getElementById('pstart').value,pendS:document.getElementById('pend').value,
+    vendors:document.getElementById('vendors').value.split(/\n/).map(function(s){return s.trim();}).filter(Boolean)
+  };
+}
+
+function docCard(name,f,C){
+  var v=decide(C);
+  var vt={post:'Auto-post',hold:'Held — control failure',rev:'Manual review'}[v];
+  var fields=[['Vendor',f.vendor],['Invoice #',f.invoiceNo],['Date',f.date],['PO',f.po],
+              ['Subtotal',f.subtotal!=null?money(f.subtotal):null],['Tax',f.tax!=null?money(f.tax):null],
+              ['Total',f.total!=null?money(f.total):null],['Lines',f.items.length||null]];
+  var fh='';
+  fields.forEach(function(p){
+    fh+='<div class="fld-c'+(p[1]==null?' miss':'')+'"><div class="k">'+p[0]+'</div><div class="v">'
+      +(p[1]==null?'not extracted':p[1])+'</div></div>';
+  });
+  var ch='';
+  C.forEach(function(c){
+    var ic={pass:'✓',fail:'✕',rev:'!'}[c.status];
+    ch+='<div class="ctrl '+c.status+'"><div class="ic">'+ic+'</div><div class="cb">'
+      +'<div class="cn">'+c.name+' <span class="cid">'+c.id+'</span></div>'
+      +'<div class="cd">'+c.detail+'</div></div></div>';
+  });
+  var pass=C.filter(function(c){return c.status==='pass';}).length;
+  return '<div class="doc"><div class="dh"><div><div class="t">'+name+'</div>'
+    +'<div class="m">'+pass+' of '+C.length+' controls passed</div></div>'
+    +'<span class="verdict '+v+'">'+vt+'</span></div>'
+    +'<div class="fields">'+fh+'</div><div class="ctrls">'+ch+'</div></div>';
+}
+
+function summarize(results){
+  var n=results.length;
+  var posted=results.filter(function(r){return r.v==='post';}).length;
+  var held=results.filter(function(r){return r.v==='hold';}).length;
+  var rev=results.filter(function(r){return r.v==='rev';}).length;
+  var stp=n?posted/n*100:0;
+  var valPosted=results.filter(function(r){return r.v==='post';}).reduce(function(s,r){return s+(r.f.total||0);},0);
+  var valHeld=results.filter(function(r){return r.v!=='post';}).reduce(function(s,r){return s+(r.f.total||0);},0);
+
+  /* failure histogram */
+  var hist={};
+  results.forEach(function(r){ r.C.forEach(function(c){
+    if(c.status!=='pass'){ hist[c.id+' '+c.name]=(hist[c.id+' '+c.name]||0)+1; } }); });
+  var pairs=Object.keys(hist).map(function(k){return [k,hist[k]];}).sort(function(a,b){return b[1]-a[1];});
+  var maxN=pairs.length?pairs[0][1]:1;
+  var bars='';
+  pairs.forEach(function(p){
+    bars+='<div class="b"><span class="lbl">'+p[0]+'</span><span class="tr"><span class="fl" style="width:'
+      +(p[1]/maxN*100)+'%"></span></span><span class="n">'+p[1]+'</span></div>';
+  });
+
+  var top=pairs.length?pairs[0][0]:null;
+  var ex='<p>Of <b>'+n+' document'+(n===1?'':'s')+'</b>, <b>'+posted+'</b> cleared every control and can post without a '
+    +'human touching them — a straight-through rate of <b>'+stp.toFixed(0)+'%</b>. '+held+' were held on a hard control '
+    +'failure and '+rev+' routed to review on a soft flag.</p>';
+  ex+='<p><b>'+money(valPosted)+'</b> of invoice value is clear to post; <b>'+money(valHeld)+'</b> is stopped pending '
+    +'resolution. That split is the number an AP manager cares about, because held value is what ages into late payments.</p>';
+  if(top) ex+='<p>The most frequent exception is <b>'+top+'</b>. In a real deployment this histogram is the improvement '
+    +'backlog: a control that fires constantly is either a genuine process defect or a badly calibrated policy, and the '
+    +'distinction is worth the investigation before anyone tunes the extractor.</p>';
+  ex+='<p>Note what did the work here. No control asked the extractor how sure it was. Arithmetic tie-outs, a vendor '
+    +'master, a format rule and a duplicate register caught every defect independently, which means the same control set '
+    +'holds if the parser is swapped for a model — or if the model silently gets worse.</p>';
+
+  return '<div class="kpis">'
+    +'<div class="kpi ok"><div class="l">Straight-through</div><div class="v">'+stp.toFixed(0)+'%</div><div class="s">'+posted+' of '+n+' auto-posted</div></div>'
+    +'<div class="kpi bad"><div class="l">Held</div><div class="v">'+held+'</div><div class="s">hard control failure</div></div>'
+    +'<div class="kpi"><div class="l">Manual review</div><div class="v">'+rev+'</div><div class="s">soft flag</div></div>'
+    +'<div class="kpi"><div class="l">Value stopped</div><div class="v">'+money(valHeld)+'</div><div class="s">of '+money(valPosted+valHeld)+' submitted</div></div>'
+    +'</div>'
+    +(bars?'<div class="panel" style="margin:0 0 18px;background:var(--bg-2)"><div class="sub" style="margin-bottom:12px">Exceptions by control</div><div class="barh">'+bars+'</div></div>':'')
+    +'<div class="ai"><div class="lbl">◍ Plain-English read</div>'+ex+'</div>';
+}
+
+document.getElementById('run').onclick=function(){
+  var cfg=cfgRead();
+  var f=extract(document.getElementById('src').value);
+  var C=runControls(f,cfg);
+  document.getElementById('out').innerHTML=summarize([{f:f,C:C,v:decide(C)}])
+    +docCard('Submitted document',f,C)
+    +'<div class="disc">Sample documents are synthetic. The extractor here is a local deterministic parser standing in '
+    +'for a model; the control layer is what would remain unchanged if a model were substituted. Controls test the '
+    +'document against policy and arithmetic only — they cannot detect a defect that is internally consistent, such as a '
+    +'legitimate-looking invoice for goods never received, which is what three-way matching against receipts is for.</div>';
+};
+
+document.getElementById('runall').onclick=function(){
+  var cfg=cfgRead();
+  seen={};                                  /* fresh duplicate register per batch */
+  var results=SAMPLES.map(function(s){
+    var f=extract(s.t), C=runControls(f,cfg);
+    return {name:s.n,f:f,C:C,v:decide(C)};
+  });
+  var cards=results.map(function(r){ return docCard(r.name,r.f,r.C); }).join('');
+  document.getElementById('out').innerHTML=summarize(results)+cards
+    +'<div class="disc">Sample documents are synthetic. The extractor here is a local deterministic parser standing in '
+    +'for a model; the control layer is what would remain unchanged if a model were substituted. Controls test the '
+    +'document against policy and arithmetic only — they cannot detect a defect that is internally consistent, such as a '
+    +'legitimate-looking invoice for goods never received, which is what three-way matching against receipts is for.</div>';
+};
+
+function regCount(){ document.getElementById('regn').textContent=Object.keys(seen).length; }
+document.getElementById('reset').onclick=function(){ seen={}; regCount(); };
+var _run=document.getElementById('run').onclick, _all=document.getElementById('runall').onclick;
+document.getElementById('run').onclick=function(){ _run(); regCount(); };
+document.getElementById('runall').onclick=function(){ _all(); regCount(); };
+document.getElementById('runall').click();
+</script>
+
+<script src="../snow.js"></script>
+<script src="../a11y.js"></script>
+<script src="../spotifyplayer.js"></script>
+</body>
+</html>
