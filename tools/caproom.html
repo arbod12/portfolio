@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CapRoom — Ariel Bodik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
+    --line:#26263a;--line-bright:#34344e;--text:#f4f4f8;--text-dim:#a0a0b8;--text-faint:#6a6a85;
+    --lime:#c6ff3a;--violet:#7c5cff;--cyan:#3affe0;--pink:#ff5c8a;--accent:#ff5c8a;
+    --ok:#3affe0;--tax:#ffcf3a;--ap1:#ff8f3a;--ap2:#ff5c8a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(720px circle at 82% 4%,rgba(255,143,58,.10),transparent 50%),radial-gradient(600px circle at 5% 42%,rgba(124,92,255,.07),transparent 45%)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(10,10,15,.7);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1100px;margin:0 auto}
+  .brand{font-family:'Clash Display';font-weight:600;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;background:var(--lime);border-radius:50%;box-shadow:0 0 12px var(--lime)}
+  .back{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);transition:.18s}
+  .back:hover{color:var(--pink)}
+
+  .head{padding:52px 0 24px}
+  .kick{font-family:'JetBrains Mono';font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-bright);border-radius:20px;padding:6px 13px;margin-bottom:20px;background:var(--surface)}
+  h1{font-family:'Clash Display';font-weight:600;font-size:clamp(32px,5vw,52px);letter-spacing:-.02em;line-height:1.05}
+  h1 .g{background:linear-gradient(120deg,var(--ap1),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .head p{margin-top:16px;color:var(--text-dim);font-size:18px;max-width:680px}
+
+  .grid{display:grid;grid-template-columns:1fr 1.15fr;gap:22px;padding:14px 0 60px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .panel h2{font-family:'Clash Display';font-weight:600;font-size:18px;margin-bottom:6px}
+  .panel .sub{color:var(--text-faint);font-size:13px;margin-bottom:18px}
+
+  label.fld{display:block;font-size:13px;color:var(--text-dim);margin:14px 0 6px;font-weight:500}
+  input,select{width:100%;background:var(--bg-2);border:1px solid var(--line-bright);border-radius:10px;color:var(--text);font-family:'JetBrains Mono';font-size:14px;padding:11px 13px}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  .row{display:flex;gap:12px}.row>div{flex:1}
+  .loadnote{display:none;margin-top:10px;font-size:12px;line-height:1.6;color:var(--text-dim);
+    background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--cyan);
+    border-radius:8px;padding:10px 12px}
+  .loadnote b{color:var(--text)}
+  .or-divider2{display:flex;align-items:center;gap:12px;margin:18px 0 10px;color:var(--text-faint);font-family:'JetBrains Mono';font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .or-divider2::before,.or-divider2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* roster builder */
+  .rost{margin-top:6px}
+  .rost-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .rost-row input.nm{flex:1.6;font-family:'Familjen Grotesk';font-size:14px}
+  .rost-row input.sal{flex:1}
+  .rost-row .x{flex-shrink:0;width:34px;height:38px;border:1px solid var(--line-bright);background:var(--bg-2);color:var(--text-faint);border-radius:8px;cursor:pointer;font-size:16px;line-height:1}
+  .rost-row .x:hover{border-color:var(--pink);color:var(--pink)}
+  .addrow{font-family:'JetBrains Mono';font-size:12.5px;color:var(--cyan);background:none;border:1px dashed var(--line-bright);width:100%;padding:9px;border-radius:9px;cursor:pointer;margin-top:4px}
+  .addrow:hover{border-color:var(--cyan)}
+  .toggle-line{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:13.5px;color:var(--text-dim)}
+  .toggle-line input{width:auto}
+  .seg{display:flex;gap:0;margin-top:6px;border:1px solid var(--line-bright);border-radius:10px;overflow:hidden}
+  .seg button{flex:1;background:var(--bg-2);color:var(--text-dim);border:none;padding:10px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;transition:.15s}
+  .seg button.on{background:var(--surface-2);color:var(--text)}
+  .btn{font-family:'Familjen Grotesk';font-weight:600;font-size:15px;padding:13px 22px;border-radius:10px;cursor:pointer;border:none;transition:.18s;display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-top:20px;background:linear-gradient(120deg,var(--ap1),var(--pink));color:#0a0a0f}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,143,58,.22)}
+  .sample{font-family:'JetBrains Mono';font-size:12px;color:var(--text-faint);background:none;border:none;cursor:pointer;margin-top:12px;text-decoration:underline}
+  .sample:hover{color:var(--pink)}
+
+  /* results */
+  .ph{color:var(--text-faint);font-style:italic;text-align:center;padding:70px 20px}
+  .statusbar{border-radius:12px;padding:16px 18px;margin-bottom:18px;border:1px solid var(--line-bright);background:var(--surface-2)}
+  .statusbar .lvl{font-family:'JetBrains Mono';font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+  .statusbar .amt{font-family:'Clash Display';font-size:26px;font-weight:600}
+  .statusbar.ok{border-color:rgba(58,255,224,.4)} .statusbar.ok .lvl{color:var(--ok)}
+  .statusbar.tax{border-color:rgba(255,207,58,.4)} .statusbar.tax .lvl{color:var(--tax)}
+  .statusbar.ap1{border-color:rgba(255,143,58,.5)} .statusbar.ap1 .lvl{color:var(--ap1)}
+  .statusbar.ap2{border-color:rgba(255,92,138,.5)} .statusbar.ap2 .lvl{color:var(--ap2)}
+
+  .meter{margin:18px 0 6px;position:relative;height:auto}
+  .meter .track{position:relative;height:10px;background:var(--bg-2);border-radius:6px;border:1px solid var(--line);overflow:visible}
+  .meter .fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:linear-gradient(90deg,var(--cyan),var(--tax),var(--ap1),var(--ap2))}
+  .meter .mark{position:absolute;top:-4px;width:2px;height:18px;background:var(--text-faint)}
+  .meter .mlabels{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:9.5px;color:var(--text-faint);margin-top:8px;flex-wrap:wrap;gap:4px}
+
+  .rows{margin-top:6px}
+  .lrow{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .lrow:last-child{border-bottom:none}
+  .lrow .k{color:var(--text-dim)}
+  .lrow .v{font-family:'JetBrains Mono';font-weight:600}
+  .lrow.big .v{font-size:17px;color:var(--tax)}
+  .lrow.total{border-top:2px solid var(--line-bright);margin-top:4px;padding-top:14px}
+  .lrow.total .k{font-weight:600;color:var(--text)}
+  .lrow.total .v{font-size:19px;color:var(--ap1)}
+
+  .brk-table{margin-top:16px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .brk-table .br{display:flex;justify-content:space-between;padding:8px 13px;font-family:'JetBrains Mono';font-size:11.5px;border-bottom:1px solid var(--line)}
+  .brk-table .br:last-child{border-bottom:none}
+  .brk-table .br.hit{background:rgba(255,207,58,.07)}
+  .brk-table .br .rate{color:var(--tax)}
+  .brk-table .br .amt{color:var(--text-dim)}
+
+  .ai{margin-top:18px;background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--violet);border-radius:10px;padding:15px 17px}
+  .ai .lbl{font-family:'JetBrains Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--violet);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+  .ai p{font-size:13.5px;color:var(--text-dim);line-height:1.65;margin-bottom:8px}
+  .ai p:last-child{margin-bottom:0}
+  .ai b{color:var(--text)}
+  .restrict{margin-top:14px}
+  .restrict .ri{display:flex;gap:9px;font-size:12.5px;color:var(--text-dim);padding:6px 0;align-items:flex-start}
+  .restrict .ri .dot2{color:var(--ap2);margin-top:2px}
+
+  .disc{font-family:'JetBrains Mono';font-size:11px;color:var(--text-faint);line-height:1.6;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--text-faint);font-size:13px;text-align:center}
+</style>
+<link rel="stylesheet" href="../core-theme.css">
+</head>
+<body>
+<nav><div class="nav-in">
+  <a href="../index.html" class="brand"><span class="dot"></span>ARIEL BODIK</a>
+  <a href="../index.html" class="back">← all tools</a>
+</div></nav>
+
+<header class="head wrap">
+  <div class="kick">◆ Sports Finance</div>
+  <h1>CapRoom <span class="g">NBA cap & tax simulator</span></h1>
+  <p>Build a roster and see exactly where it lands against the salary cap, luxury tax, and both aprons. Calculates the real bracketed tax bill and explains the roster-building consequences in plain English. Built on the CBA thresholds, with all 30 teams loaded from a dated snapshot, every one of them broken out contract by contract.</p>
+</header>
+
+<div class="grid wrap">
+  <!-- INPUT -->
+  <div class="panel">
+    <h2>Roster &amp; payroll</h2>
+    <div class="sub">Enter player salaries in millions. The tax salary is the sum.</div>
+
+    <label class="fld">Load a real team's payroll <span style="color:var(--text-faint)">(2026-27 · snapshot 12 Aug 2026)</span></label>
+    <select id="teamSel">
+      <option value="">— Select a team —</option>
+    </select>
+
+    <div id="loadNote" class="loadnote"></div>
+
+    <div class="or-divider2">or build it manually</div>
+
+    <div class="rost" id="rost"></div>
+    <button class="addrow" id="addRow">+ Add player</button>
+
+    <div class="toggle-line">
+      <input type="checkbox" id="repeater">
+      <label for="repeater" style="margin:0;cursor:pointer">Repeater team <span style="color:var(--text-faint)">(paid tax in 3 of last 4 seasons — higher rates)</span></label>
+    </div>
+
+    <label class="fld">Season</label>
+    <div class="seg" id="seasonSeg">
+      <button class="on" data-season="2025">2025-26</button>
+      <button data-season="2026">2026-27</button>
+    </div>
+
+    <button class="btn" id="calc">Calculate cap position</button>
+    <button class="sample" id="sample">Load a sample contender roster</button>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="panel">
+    <h2>Cap position</h2>
+    <div class="sub">Status, tax bill, and what it means for roster moves.</div>
+    <div id="out"><div class="ph">Add players and calculate to see where this roster lands.</div></div>
+  </div>
+</div>
+
+<footer class="wrap">CapRoom · a sports-finance tool by Ariel Bodik · arielbodik.com</footer>
+
+<script>
+/* ============================================================
+   VERIFIED 2025-26 NBA CBA FIGURES (in dollars)
+   Sources: NBA.com cap announcement, CBA Guide, Larry Coon CBA FAQ.
+   2026-27 marked (est.) — official figures set each July.
+   ============================================================ */
+var SEASONS = {
+  '2025': {
+    label:'2025-26',
+    cap:        154647000,
+    floor:      139182000,
+    taxLine:    187895000,
+    apron1:     195945000,
+    apron2:     207824000,
+    bracketW:     5685000,   // width of each tax bracket
+    est:false
+  },
+  '2026': {
+    // 2026-27 thresholds (Spotrac); cap corrected to $165.0M so that 121.5% ties to the tax line.
+    label:'2026-27',
+    cap:        165000000,   // 121.5% of this = the 200,475,000 tax line
+    floor:      148500000,   // 90% of the cap
+    taxLine:    200475000,   // 121.5% of cap
+    apron1:     210330000,
+    apron2:     223081000,
+    bracketW:     6065000,
+    est:false
+  }
+};
+
+/* Team payrolls — source: nbacaptracker.com, captured 2026-08-12. A dated
+   snapshot, not live; payrolls move with every signing and trade.
+   Basis is GUARANTEED TEAM SALARY (active contracts plus any dead money).
+   Cap holds and unsigned draft picks are excluded, so these figures are
+   lower than a "total cap allocations" number that includes them. Every
+   full roster below sums exactly to its team's stated total. */
+var TEAMS_2026 = [
+  {ab:'BKN', name:'Brooklyn Nets',         total: 98559729},
+  {ab:'CHI', name:'Chicago Bulls',         total:118427125},
+  {ab:'LAL', name:'Los Angeles Lakers',    total:128428651},
+  {ab:'DET', name:'Detroit Pistons',       total:140115328},
+  {ab:'CHA', name:'Charlotte Hornets',     total:145241767},
+  {ab:'DAL', name:'Dallas Mavericks',      total:152099870},
+  {ab:'MIL', name:'Milwaukee Bucks',       total:152465756},
+  {ab:'UTA', name:'Utah Jazz',             total:152735713},
+  {ab:'SAS', name:'San Antonio Spurs',     total:158468566},
+  {ab:'MEM', name:'Memphis Grizzlies',     total:159253506},
+  {ab:'LAC', name:'Los Angeles Clippers',  total:162164340},
+  {ab:'ATL', name:'Atlanta Hawks',         total:166366179},
+  {ab:'WAS', name:'Washington Wizards',    total:167550932},
+  {ab:'POR', name:'Portland Trail Blazers',total:172841906},
+  {ab:'GSW', name:'Golden State Warriors', total:174165911},
+  {ab:'PHI', name:'Philadelphia 76ers',    total:179988888},
+  {ab:'BOS', name:'Boston Celtics',        total:183470055},
+  {ab:'HOU', name:'Houston Rockets',       total:187510080},
+  {ab:'MIA', name:'Miami Heat',            total:191124063},
+  {ab:'TOR', name:'Toronto Raptors',       total:193059996},
+  {ab:'NOP', name:'New Orleans Pelicans',  total:193746252},
+  {ab:'IND', name:'Indiana Pacers',        total:198601859},
+  {ab:'SAC', name:'Sacramento Kings',      total:200001458},
+  {ab:'PHX', name:'Phoenix Suns',          total:207803443},
+  {ab:'ORL', name:'Orlando Magic',         total:210526808},
+  {ab:'DEN', name:'Denver Nuggets',        total:211396723},
+  {ab:'NYK', name:'New York Knicks',       total:215817771},
+  {ab:'OKC', name:'Oklahoma City Thunder', total:221864066},
+  {ab:'CLE', name:'Cleveland Cavaliers',   total:224660758},
+  {ab:'MIN', name:'Minnesota Timberwolves',total:227192868}
+];
+
+/* Non-repeater incremental rates per bracket (2025-26 CBA).
+   B1 $1.00, B2 $1.25, B3 $3.50, B4 $4.75, then +$0.50 each.
+   Repeater adds ~$1.00/dollar to each tier. */
+function rateForBracket(i, repeater){
+  // i is zero-based bracket index
+  var base;
+  if(i===0) base=1.00;
+  else if(i===1) base=1.25;
+  else if(i===2) base=3.50;
+  else if(i===3) base=4.75;
+  else base = 4.75 + 0.50*(i-3);
+  return repeater ? base + 1.00 : base;
+}
+
+/* Player-by-player rosters — signed contracts only. Source: nbacaptracker.com,
+   captured 2026-08-12. Two-way contracts carrying no 2026-27 cap hit are omitted.
+   Each roster was checked against the team's stated total and ties to the dollar. */
+var ROSTERS_2026 = {
+  'NYK':[['Karl-Anthony Towns',57078728],['OG Anunoby',42500000],['Jalen Brunson',37739521],
+         ['Mikal Bridges',33482145],['Josh Hart',20923760],['Landry Shamet',5357143],
+         ['Mohamed Diawara',5000000],['Jose Alvarado',4500000],['Miles McBride',3956523],
+         ['Pacome Dadiet',2983680],['Tyler Kolek',2296271]],
+  'BOS':[['Jayson Tatum',58456566],['Jaylen Brown',57078728],['Derrick White',30348000],
+         ['Sam Hauser',10848215],['Payton Pritchard',7767857],['Hugo Gonzalez',2923560],
+         ['Dalano Banton',2801346],['Luka Garza',2801346],['Baylor Scheierman',2744040],
+         ['Neemias Queta',2667944],['Ron Harper Jr.',2626248],['Jordan Walsh',2406205]],
+  'GSW':[['Stephen Curry',62587158],['Jimmy Butler',56832773],['Kristaps Porzingis',19512195],
+         ['Moses Moody',12500000],['Al Horford',6822000],['Brandin Podziemski',5679459],
+         ['Gui Santos',4629630],["De'Anthony Melton",3451779],['Will Richard',2150917]],
+  'MIN':[['Anthony Edwards',48924624],['LaMelo Ball',40770520],['Rudy Gobert',36500000],
+         ['Julius Randle',33333334],['Jaden McDaniels',26200000],['Ayo Dosunmu',19310345],
+         ['Donte DiVincenzo',12535000],['Joan Beringer',4411200],['Terrence Shannon Jr.',2801640],
+         ['Julian Phillips',2406205]],
+  'CLE':[['Evan Mobley',50105628],['Donovan Mitchell',50105628],['James Harden',42317307],
+         ['Jarrett Allen',28000000],['Max Strus',16660836],['Dennis Schroder',14809200],
+         ['Sam Merrill',9160715],['Jaylon Tyson',3658560],['Thomas Bryant',2450000],
+         ["Nae'Qwan Tomlin",2411090],['Craig Porter Jr.',2406205],['Tyrese Proctor',2150917],
+         ['Dead money (Ricky Rubio)',424672]],
+  'OKC':[['Chet Holmgren',41250000],['Jalen Williams',41250000],['Shai Gilgeous-Alexander',40806150],
+         ['Isaiah Hartenstein',28500000],['Alex Caruso',19550160],['Luguentz Dort',17722222],
+         ['Jaylin Williams',7774648],['Cason Wallace',7420806],['Nikola Topic',5429760],
+         ['Thomas Sorber',4887720],['Jared McCain',4422600],['Ajay Mitchell',2850000]],
+  'DEN':[['Nikola Jokic',59033114],['Jamal Murray',50105628],['Aaron Gordon',31978037],
+         ['Cameron Johnson',23062500],['Christian Braun',21551726],['Jonas Valanciunas',10000000],
+         ['Zeke Nnaji',7466667],['Julian Strawther',4826931],['DaRon Holmes II',3372120]],
+  'ORL':[['Franz Wagner',41754690],['Paolo Banchero',41250000],['Desmond Bane',39446090],
+         ['Jalen Suggs',32400000],['Wendell Carter Jr.',18102000],['Anthony Black',10106316],
+         ['Goga Bitadze',7608696],['Tristan Da Silva',3991200],['Jase Richardson',3132360],
+         ['Jamal Cain',2584539],['Noah Penda',2150917],['Dead money (Jonathan Isaac)',8000000]],
+  'PHX':[['Devin Booker',57078728],['Jalen Green',36251166],['Miles Bridges',22826087],
+         ['Dillon Brooks',20992727],['Mark Williams',11728395],['Collin Gillespie',10714286],
+         ['Khaman Maluach',6316680],['Jordan Goodwin',5864198],['Haywood Highsmith',3018158],
+         ['Ryan Dunn',2784240],['Jamaree Bouyea',2584539],['Oso Ighodaro',2296271],
+         ['Rasheer Fleming',2150917],['Dead money (Bradley Beal)',19383010],
+         ['Dead money (Nassir Little)',3107143],['Dead money (E.J. Liddell)',706898]],
+  'SAC':[['Zach LaVine',48967380],['Domantas Sabonis',45472000],['DeMar DeRozan',25740000],
+         ["De'Andre Hunter",24910714],['Keegan Murray',24137936],['Malik Monk',20190035],
+         ['Nique Clifford',3263400],['Killian Hayes',3018158],['Maxime Raynaud',2150918],
+         ['Dylan Cardwell',2150917]],
+  'IND':[['Tyrese Haliburton',48924624],['Pascal Siakam',48924624],['Ivica Zubac',20342140],
+         ['Andrew Nembhard',19550160],['Obi Toppin',15000000],['T.J. McConnell',11000000],
+         ['Aaron Nesmith',11000000],['Jarace Walker',8478542],['Ben Sheppard',5031669],
+         ['Micah Potter',2801346],['Jay Huff',2667944],['Quenton Jackson',2584539],
+         ['Johnny Furphy',2296271]],
+  'NOP':[['Zion Williamson',42166510],['Jordan Poole',34044642],['Dejounte Murray',32785071],
+         ['Trey Murphy III',27000000],['Herbert Jones',14898786],['Kevon Looney',8000000],
+         ['Jeremiah Fears',7896240],['Jordan Hawkins',7021895],['Saddiq Bey',6557080],
+         ['Derik Queen',5416080],['Yves Missi',3512760],['Karlo Matkovic',2296271],
+         ['Micah Peavy',2150917]],
+  'TOR':[['Scottie Barnes',41754690],['Brandon Ingram',40000000],['Immanuel Quickley',32500000],
+         ['R.J. Barrett',29616071],['Jakob Poeltl',19500000],['Gradey Dick',7131511],
+         ['Collin Murray-Boyles',6649560],["Ja'Kobe Walter",3811800],['Sandro Mamukelashvili',2801346],
+         ['Trayce Jackson-Davis',2406205],['Jamal Shead',2296271],['Jamison Battle',2296271],
+         ['Jonathan Mogbo',2296271]],
+  'MIA':[['Giannis Antetokounmpo',58456566],['Bam Adebayo',49500000],['Andrew Wiggins',30169644],
+         ['Nikola Jovic',16200000],['Bobby Portis',14521414],['Davion Mitchell',12400000],
+         ['Dru Smith',2584539],['Myron Gardner',2584539],['Jahmir Young',2411090],
+         ['Pelle Larsson',2296271]],
+  'HOU':[['Kevin Durant',43902439],['Alperen Sengun',35642202],['Fred VanVleet',25000000],
+         ['Jabari Smith Jr.',23643411],['Dorian Finney-Smith',13335000],['Steven Adams',13000000],
+         ['Amen Thompson',12258609],['Reed Sheppard',11108880],['Clint Capela',7035000],
+         ['J.D. Davison',2584539]],
+  'PHI':[['Joel Embiid',57985752],['Paul George',54126380],['Tyrese Maxey',40770520],
+         ['VJ Edgecombe',11663880],['Dominick Barlow',3415000],['Dalen Terry',2584539],
+         ['Jabari Walker',2584539],['Justin Edwards',2411090],['Adem Bona',2296271],
+         ['Johni Broome',2150917]],
+  'POR':[['Ja Morant',42166510],['Jrue Holiday',34800000],['Shaedon Sharpe',20089287],
+         ['Toumani Camara',18080358],['Scoot Henderson',13585523],['Damian Lillard',13398000],
+         ['Deni Avdija',13125000],['Donovan Clingan',7519920],['Yang Hansen',4643520],
+         ['Vit Krejci',2667944],['Sidy Cissoko',2497812],['Dead money (Didi Louzada)',268032]],
+  'WAS':[['Anthony Davis',58456566],['Trae Young',49500000],['Alex Sarr',12370680],
+         ['Bilal Coulibaly',9240012],['Tre Johnson',8649600],['Jaden Hardy',6000000],
+         ["D'Angelo Russell",5969250],['Bub Carrington',4900560],['Will Riley',3688320],
+         ['Kyshawn George',3108000],['Tristan Vukcevic',3000000],['Justin Champagnie',2667944]],
+  'ATL':[['Jalen Johnson',30000000],['Dyson Daniels',25000000],['C.J. McCollum',21000000],
+         ['Onyeka Okongwu',16100000],['Nickeil Alexander-Walker',14403710],['Corey Kispert',13975000],
+         ['Zaccharie Risacher',13826040],['Buddy Hield',9658536],['Aaron Wiggins',9028038],
+         ['Devin Carter',5158080],['Asa Newell',3399480],['Mouhamed Gueye',2406205],
+         ["Dead money (N'Faly Dante)",2411090]],
+  'LAC':[['Kawhi Leonard',50300000],['Darius Garland',42166510],['Bogdan Bogdanovic',16020000],
+         ['Derrick Jones Jr.',10476190],['Brook Lopez',9187500],['Isaiah Jackson',7000000],
+         ['Nicolas Batum',5881680],['Kris Dunn',5684800],['Bradley Beal',5621700],
+         ['Yanic Konan Niederhauser',2880960],['Jordan Miller',2497812],['Cam Christie',2296271],
+         ['Kobe Sanders',2150917]],
+  'MEM':[['Jerami Grant',34206898],['Kentavious Caldwell-Pope',21621500],['Santi Aldama',17007043],
+         ['Isaiah Stewart',15000000],['Brandon Clarke',12500000],['Ty Jerome',9220050],
+         ['Taylor Hendricks',7805900],['Zach Edey',6332760],['Cedric Coward',6001080],
+         ['Kris Murray',5315004],['Walter Clayton Jr.',4190520],['Taj Gibson',3815861],
+         ['Olivier-Maxence Prosper',2497812],['Scotty Pippen Jr.',2461462],['Cam Spencer',2411090],
+         ['G.G. Jackson',2406205],['Jaylen Wells',2296271],['Dead money (Cole Anthony)',3700000],
+         ['Dead money (Mamadi Diakite)',464050]],
+  'SAS':[["De'Aaron Fox",49500000],['Devin Vassell',27500000],['Keldon Johnson',18000000],
+         ['Victor Wembanyama',16868246],['Dylan Harper',12989040],['Luke Kornet',10450000],
+         ['Stephon Castle',10015920],['Harrison Barnes',8000000],['Carter Bryant',5145360]],
+  'UTA':[['Jaren Jackson Jr.',49000000],['Lauri Markkanen',46113154],['Jusuf Nurkic',10576923],
+         ['Ace Bailey',9523080],['Keyonte George',6563925],['John Konchar',6165000],
+         ['Cody Williams',6015600],['Brice Sensabaugh',4862237],['Sviatoslav Mykhailiuk',3850000],
+         ['Kyle Filipowski',3000000],['Isaiah Collier',2763960],['Bez Mbeng',2150917],
+         ['Hayden Gray',2150917]],
+  'MIL':[['Tyler Herro',33000000],['Myles Turner',26584164],['Kyle Kuzma',20490152],
+         ['A.J. Green',10044644],['Jaime Jaquez Jr.',5939141],['Kevin Porter Jr.',5390700],
+         ["Kel'el Ware",4654920],['Ryan Rollins',4000000],['Kasparas Jakucionis',3841680],
+         ['Gary Harris',3815861],['Taurean Prince',3815861],['Jericho Sims',2801346],
+         ['Pete Nance',2497812],['Andre Jackson Jr.',2406205],
+         ['Dead money (Damian Lillard)',22516603],['Dead money (Vasilije Micic)',666667]],
+  'DAL':[['Kyrie Irving',39491282],['P.J. Washington',19813044],['Klay Thompson',17460317],
+         ['Daniel Gafford',17263584],['Cooper Flagg',14517480],['Caleb Martin',10001494],
+         ['Naji Marshall',9428571],['Max Christie',8285714],['Dereck Lively II',7239131],
+         ['A.J. Johnson',3237120],['Ryan Nembhard',2150917],
+         ['Dead money (JaVale McGee)',2208856],['Dead money (O-M Prosper)',1002360]],
+  'CHA':[['Naz Reid',23275862],['Coby White',22839506],['Grayson Allen',18125000],
+         ['Brandon Miller',15104626],['Grant Williams',14265750],["Royce O'Neale",10875000],
+         ['Kon Knueppel',10516560],['Tidjane Salaun',8237880],['Tre Mann',8000000],
+         ['Pat Connaughton',3815861],['Liam McNeeley',2902080],['Moussa Diabate',2461462],
+         ['Ryan Kalkbrenner',2411090],['Sion James',2411090]],
+  'DET':[['Cade Cunningham',50105628],['Duncan Robinson',15992957],['Caris LeVert',14809200],
+         ['Isaiah Joe',11323006],['Ausar Thompson',11117925],['Ron Holland II',9069600],
+         ['Kevin Huerter',8333333],['Paul Reed',5602689],['Marcus Sasser',5198983],
+         ['Daniss Jenkins',4000000],['Tolu Smith III',2411090],['Chaz Lanier',2150917]],
+  'LAL':[['Luka Doncic',49500000],['Austin Reaves',41250000],['Jarred Vanderbilt',12428571],
+         ['Deandre Ayton',8104000],['Jake LaRavia',6000000],['Dalton Knecht',4201080],
+         ['Nick Smith Jr.',2497812],['Bronny James',2296271],['Adou Thiero',2150917]],
+  'CHI':[['Josh Giddey',25000000],['Nicolas Claxton',23320738],['Patrick Williams',18000000],
+         ['Isaac Okoro',11814814],['Jalen Smith',9428571],['Tre Jones',8000000],
+         ['Rob Dillingham',6889320],['Matas Buzelis',5715360],['Noa Essengue',5701200],
+         ['Leonard Miller',2406205],['Kam Jones',2150917]],
+  'BKN':[['Michael Porter Jr.',40806150],['Terance Mann',15500000],["Day'Ron Sharpe",9615385],
+         ['Egor Demin',7233720],['Noah Clowney',5414034],['Josh Minott',4326923],
+         ['Nolan Traore',4002000],['Drake Powell',3540600],['Ben Saraf',3028560],
+         ['Danny Wolf',2941440],['Malachi Smith',2150917]]
+};
+
+var fmt = function(n){
+  var neg = n<0; n=Math.abs(n);
+  var s = '$'+(n).toLocaleString('en-US',{maximumFractionDigits:0});
+  return neg ? '-'+s : s;
+};
+var fmtM = function(n){ return '$'+(n/1e6).toFixed(1)+'M'; };
+
+/* ---- roster builder ---- */
+var rost = document.getElementById('rost');
+/* Salaries display in millions but are stored exactly in dollars on the input.
+   Rounding the display to 2dp would shift a $57,078,728 contract to $57,080,000,
+   and the tax brackets multiply that error by up to 4.75x. The exact value is kept
+   in data-exact and dropped as soon as the user types, so edits behave normally. */
+function addRow(name, sal, exactDollars){
+  var d = document.createElement('div');
+  d.className='rost-row';
+  d.innerHTML = '<input class="nm" type="text" placeholder="Player" value="'+(name||'')+'">'
+    + '<input class="sal" type="number" step="0.000001" placeholder="Salary $M" value="'+(sal!=null?sal:'')+'">'
+    + '<button class="x" title="Remove">×</button>';
+  var salInput=d.querySelector('.sal');
+  if(exactDollars!=null) salInput.dataset.exact=exactDollars;
+  salInput.addEventListener('input',function(){ delete salInput.dataset.exact; });
+  d.querySelector('.x').onclick=function(){ d.remove(); };
+  rost.appendChild(d);
+}
+document.getElementById('addRow').onclick=function(){ addRow(); };
+// seed a few empty rows
+addRow(); addRow(); addRow();
+
+/* ---- populate team selector from the 2026-27 payroll snapshot ---- */
+var teamSel=document.getElementById('teamSel');
+TEAMS_2026.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(t){
+  var o=document.createElement('option');
+  var hasRoster = !!ROSTERS_2026[t.ab];
+  o.value=t.ab;
+  o.textContent=t.name+'  \u00b7  '+fmtM(t.total)+(hasRoster?'':'  \u00b7  total only');
+  teamSel.appendChild(o);
+});
+teamSel.onchange=function(){
+  var ab=teamSel.value;
+  if(!ab) return;
+  var t=TEAMS_2026.find(function(x){return x.ab===ab;});
+  if(!t) return;
+  // switch to 2026-27 season (the data's season)
+  season='2026';
+  document.querySelectorAll('#seasonSeg button').forEach(function(x){
+    x.classList.toggle('on', x.dataset.season==='2026');
+  });
+  rost.innerHTML='';
+  var note=document.getElementById('loadNote');
+  var roster=ROSTERS_2026[ab];
+  if(roster){
+    // player-by-player: every contract is its own editable row
+    roster.forEach(function(p){ addRow(p[0], (p[1]/1e6).toFixed(2), p[1]); });
+    note.innerHTML='Loaded <b>'+roster.length+' signed contracts</b> for the '+t.name+
+      '. Edit any salary, or remove a player to model a trade. These are guaranteed contracts: cap holds and unsigned draft picks are excluded, and the salaries sum exactly to the team total.';
+    note.style.display='block';
+  } else {
+    // totals-only team: one editable line
+    addRow(t.name+' — total payroll', (t.total/1e6).toFixed(2), t.total);
+    note.innerHTML='Loaded the '+t.name+' <b>total payroll</b> as one editable line. Player-by-player detail is available for teams marked “full roster”.';
+    note.style.display='block';
+  }
+  document.getElementById('calc').click();
+};
+
+var season='2025';
+document.querySelectorAll('#seasonSeg button').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('#seasonSeg button').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on'); season=b.dataset.season;
+  };
+});
+
+document.getElementById('sample').onclick=function(){
+  rost.innerHTML='';
+  // an illustrative high-payroll contender (~$214M) to show second-apron behavior
+  [['Star wing',54.1],['All-star guard',43.2],['Big man',34.8],['Sixth man',24.3],
+   ['Rotation forward',18.6],['Wing defender',12.4],['Backup guard',9.1],
+   ['Stretch four',7.8],['Vet minimum',3.6],['Vet minimum',2.1],['Rookie',3.9]]
+   .forEach(function(p){ addRow(p[0],p[1]); });
+  document.getElementById('repeater').checked=true;
+};
+
+/* ---- the calculation ---- */
+document.getElementById('calc').onclick=function(){
+  var S = SEASONS[season];
+  var rows = rost.querySelectorAll('.rost-row');
+  var total=0, count=0;
+  rows.forEach(function(r){
+    var el=r.querySelector('.sal');
+    if(el.dataset.exact!=null && el.dataset.exact!==''){
+      var ex=parseFloat(el.dataset.exact);
+      if(!isNaN(ex) && ex>0){ total += ex; count++; }
+      return;
+    }
+    var v=parseFloat(el.value);
+    if(!isNaN(v) && v>0){ total += v*1e6; count++; }
+  });
+  var out=document.getElementById('out');
+  if(total<=0){ out.innerHTML='<div class="ph">Enter at least one player salary to calculate.</div>'; return; }
+
+  var repeater=document.getElementById('repeater').checked;
+
+  // status level
+  var level, lvlClass, lvlText;
+  if(total < S.cap){ level='under'; lvlClass='ok'; lvlText='Under the cap'; }
+  else if(total < S.taxLine){ level='over'; lvlClass='ok'; lvlText='Over cap, under tax'; }
+  else if(total < S.apron1){ level='tax'; lvlClass='tax'; lvlText='Luxury tax'; }
+  else if(total < S.apron2){ level='ap1'; lvlClass='ap1'; lvlText='Over first apron'; }
+  else { level='ap2'; lvlClass='ap2'; lvlText='Over second apron'; }
+
+  // tax bill (bracketed, on amount over tax line)
+  var over = Math.max(0, total - S.taxLine);
+  var taxBill=0, brackets=[], remaining=over, i=0;
+  while(remaining>0){
+    var slice = Math.min(remaining, S.bracketW);
+    var rate = rateForBracket(i, repeater);
+    var inc = slice*rate;
+    taxBill += inc;
+    brackets.push({i:i, lo:i*S.bracketW, hi:(i*S.bracketW)+slice, rate:rate, amt:inc, full:S.bracketW});
+    remaining -= slice; i++;
+    if(i>30) break;
+  }
+
+  // cap space or amount over
+  var capRoom = S.cap - total;
+
+  // distance lines
+  var toTax = S.taxLine - total;
+  var toAp1 = S.apron1 - total;
+  var toAp2 = S.apron2 - total;
+
+  // meter fill (scale 0 .. apron2+10M)
+  var scaleMax = S.apron2 + 12e6;
+  var pct = Math.min(100, (total/scaleMax)*100);
+  function markPct(x){ return Math.min(100,(x/scaleMax)*100); }
+
+  // ---- build restrictions list ----
+  var restr=[];
+  if(level==='ap1'||level==='ap2'){
+    restr.push('Cannot take back more salary than sent out in a trade.');
+    restr.push('No access to the bi-annual exception or the full non-taxpayer mid-level.');
+  }
+  if(level==='ap2'){
+    restr.push('Cannot aggregate two or more salaries to match a larger contract in a trade.');
+    restr.push('Cannot send cash out in trades.');
+    restr.push('Cannot trade a first-round pick more than six years out; pick can be frozen.');
+    restr.push('No taxpayer mid-level exception to sign free agents; no buyout-market signings.');
+  }
+
+  // ---- AI-style plain-English explainer ----
+  var explain='';
+  if(level==='under'){
+    explain='<p>This roster sits <b>'+fmtM(Math.abs(capRoom))+' under the salary cap</b>, leaving real room to add salary through free agency or absorb a contract in a trade. No tax is owed.</p>'
+      +'<p>The one floor to watch: team salary must reach <b>'+fmtM(S.floor)+'</b> (the minimum). This roster is '+(total<S.floor?('<b>'+fmtM(S.floor-total)+' below</b> it, so the team would owe the shortfall to the players'):'above it, so no shortfall applies')+'.</p>';
+  } else if(level==='over'){
+    explain='<p>This roster is <b>over the cap but '+fmtM(toTax)+' below the luxury-tax line</b>, the comfortable middle most teams aim for. No tax is owed, and the full set of exceptions (including the non-taxpayer mid-level) is available.</p>'
+      +'<p>There is <b>'+fmtM(toTax)+'</b> of room before the tax kicks in, useful to know before any in-season addition.</p>';
+  } else if(level==='tax'){
+    explain='<p>This roster is <b>'+fmtM(total-S.taxLine)+' into luxury-tax territory</b>, producing an estimated bill of <b>'+fmt(taxBill)+'</b> on top of payroll. That tax is the direct cost of this roster.</p>'
+      +'<p>It is still <b>'+fmtM(toAp1)+'</b> below the first apron, so trade and exception flexibility is largely intact. The bracket table shows where the dollars land.</p>';
+  } else if(level==='ap1'){
+    explain='<p>This roster crosses the <b>first apron</b> by '+fmtM(total-S.apron1)+', with an estimated tax bill of <b>'+fmt(taxBill)+'</b>. Above this line the penalty shifts from money to <b>flexibility</b>.</p>'
+      +'<p>It remains <b>'+fmtM(toAp2)+'</b> below the second apron. Staying under that line preserves the more valuable trade tools.</p>';
+  } else {
+    explain='<p>This roster is <b>over the second apron</b> by '+fmtM(total-S.apron2)+', the most restrictive tier in the CBA, with an estimated tax bill of <b>'+fmt(taxBill)+'</b>.</p>'
+      +'<p>At this level the front office is essentially locked into the current core: most roster-building tools are gone, so additions come almost entirely from minimum contracts and the draft. This is the tier teams work hardest to escape before the deadline.</p>';
+  }
+  if(repeater && taxBill>0){
+    explain+='<p>Repeater rates are applied here, which add roughly a dollar per overage dollar versus a first-time taxpayer, a meaningful premium baked into the total above.</p>';
+  }
+
+  // ---- bracket table html ----
+  var brHtml='';
+  brackets.forEach(function(b){
+    brHtml+='<div class="br hit"><span>Bracket '+(b.i+1)+' · '+fmtM(b.lo)+'–'+fmtM(b.hi)+' over</span>'
+      +'<span><span class="rate">$'+b.rate.toFixed(2)+'/$1</span> &nbsp; <span class="amt">'+fmt(b.amt)+'</span></span></div>';
+  });
+
+  // ---- restrictions html ----
+  var rHtml='';
+  if(restr.length){
+    rHtml='<div class="restrict">';
+    restr.forEach(function(t){ rHtml+='<div class="ri"><span class="dot2">▸</span><span>'+t+'</span></div>'; });
+    rHtml+='</div>';
+  }
+
+  out.innerHTML =
+    '<div class="statusbar '+lvlClass+'">'
+      +'<div class="lvl">'+lvlText+(S.est?' · 2026-27 est.':'')+'</div>'
+      +'<div class="amt">'+fmtM(total)+' <span style="font-size:13px;color:var(--text-faint);font-family:JetBrains Mono">team salary · '+count+' players</span></div>'
+    +'</div>'
+
+    + '<div class="meter"><div class="track">'
+        +'<div class="fill" style="width:'+pct+'%"></div>'
+        +'<div class="mark" style="left:'+markPct(S.cap)+'%"></div>'
+        +'<div class="mark" style="left:'+markPct(S.taxLine)+'%"></div>'
+        +'<div class="mark" style="left:'+markPct(S.apron1)+'%"></div>'
+        +'<div class="mark" style="left:'+markPct(S.apron2)+'%"></div>'
+      +'</div>'
+      +'<div class="mlabels"><span>Cap '+fmtM(S.cap)+'</span><span>Tax '+fmtM(S.taxLine)+'</span><span>Apron1 '+fmtM(S.apron1)+'</span><span>Apron2 '+fmtM(S.apron2)+'</span></div>'
+    +'</div>'
+
+    + '<div class="rows">'
+      + '<div class="lrow"><span class="k">'+(capRoom>=0?'Cap space':'Over the cap by')+'</span><span class="v">'+fmt(Math.abs(capRoom))+'</span></div>'
+      + (total>=S.taxLine ? '<div class="lrow"><span class="k">Amount over tax line</span><span class="v">'+fmt(total-S.taxLine)+'</span></div>' : '<div class="lrow"><span class="k">Room below tax line</span><span class="v">'+fmt(toTax)+'</span></div>')
+      + (taxBill>0 ? '<div class="lrow big"><span class="k">Estimated luxury tax</span><span class="v">'+fmt(taxBill)+'</span></div>' : '')
+      + '<div class="lrow total"><span class="k">Total roster cost</span><span class="v">'+fmt(total+taxBill)+'</span></div>'
+    + '</div>'
+
+    + (brackets.length ? '<div class="brk-table">'+brHtml+'</div>' : '')
+
+    + rHtml
+
+    + '<div class="ai"><div class="lbl">◍ Plain-English read</div>'+explain+'</div>'
+
+    + '<div class="disc">Bracketed tax rates follow the '+S.label+' CBA. Published 2026-27 threshold estimates differ slightly by source (the first apron is quoted between $209.0M and $210.3M), so a roster within about a million dollars of a line could fall either side of it. Payrolls are a dated snapshot, not live, and shift with every signing and trade. Cap holds, unsigned draft picks, likely-versus-unlikely incentives and trade exceptions are not modelled, so treat this as a transparent estimate rather than an official figure.</div>';
+};
+</script>
+
+<script src="../snow.js"></script>
+<script src="../a11y.js"></script>
+<script src="../spotifyplayer.js"></script>
+</body>
+</html>
