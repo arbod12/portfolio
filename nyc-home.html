@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ariel Bodik — NYC from the Hudson</title>
+<title>Ariel Bodik</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -35,41 +35,25 @@
   #muteBtn:hover{background:rgba(255,45,119,.12)}
   #muteBtn:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
 
-  #center{left:50%;top:36%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;
-    gap:18px;width:min(720px,94vw);text-align:center}
-  #avatar{width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#241019,#0d0510 70%);
-    border:2px solid var(--pink-dim);display:flex;align-items:center;justify-content:center;
-    box-shadow:0 0 30px rgba(255,45,119,.25)}
-  #avatar canvas{width:60px;height:60px;image-rendering:pixelated}
-  #wordmark{font-family:'Press Start 2P',monospace;font-size:clamp(16px,3.4vw,26px);color:var(--pink);
-    letter-spacing:.08em;text-shadow:0 0 18px rgba(255,45,119,.45)}
-  #role{font-size:11.5px;letter-spacing:.34em;color:#d98aa6;text-transform:uppercase}
-  #pitch{font-size:13px;line-height:1.85;color:#c98ba4;max-width:540px}
-  #pitch b{color:var(--rose);font-weight:600}
-  #btns{display:flex;gap:14px;margin-top:4px;flex-wrap:wrap;justify-content:center}
-  .pxbtn{font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
-    padding:13px 22px;border-radius:4px;cursor:pointer;text-decoration:none;transition:.12s;
-    border:2px solid var(--pink);color:var(--pink);background:rgba(5,2,5,.5)}
-  .pxbtn.primary{background:var(--pink);color:var(--ink);box-shadow:4px 4px 0 rgba(255,45,119,.28)}
-  .pxbtn.primary:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 rgba(255,45,119,.35)}
-  .pxbtn:not(.primary):hover{background:rgba(255,45,119,.14)}
-  .pxbtn:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
-
-  #tip{position:fixed;z-index:20;display:none;pointer-events:none;max-width:270px;
-    background:rgba(8,3,7,.94);border:1px solid var(--pink);border-radius:4px;padding:11px 13px;
-    box-shadow:5px 5px 0 rgba(255,45,119,.22);font-size:11.5px;line-height:1.7;color:#e3aec2}
-  #tip .t{font-family:'Press Start 2P',monospace;font-size:8.5px;color:var(--pink);margin-bottom:6px;letter-spacing:.06em}
-  #tip .go{color:var(--rose);letter-spacing:.12em;text-transform:uppercase;font-size:10px;margin-top:6px;display:block}
-
-  #ticker{left:0;right:0;bottom:0;height:36px;display:flex;align-items:center;overflow:hidden;
-    background:rgba(5,2,5,.82);border-top:1px solid var(--pink-dim);backdrop-filter:blur(3px)}
-  #ticker .strip{display:flex;white-space:nowrap;animation:roll 30s linear infinite}
-  #ticker span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e3aec2;padding-right:46px}
-  #ticker b{color:var(--pink);font-weight:600}
-  @keyframes roll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-  #cornerHint{bottom:48px;left:24px;font-size:10.5px;letter-spacing:.14em;color:#7c3b55;text-transform:uppercase}
-
+  #center{left:50%;top:42%;transform:translate(-50%,-50%);
+    display:flex;flex-direction:column;align-items:center;gap:22px;
+    width:min(680px,92vw);text-align:center}
+  #wordmark{font-family:'Press Start 2P',monospace;font-size:clamp(20px,4.6vw,44px);
+    color:var(--pink);letter-spacing:.06em;line-height:1.5;
+    text-shadow:0 0 22px rgba(255,45,119,.5)}
+  #role{font-size:clamp(9px,1.4vw,12px);letter-spacing:.36em;color:#d98aa6;text-transform:uppercase}
+  #enter{margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.16em;
+    text-transform:uppercase;padding:15px 34px;border-radius:4px;text-decoration:none;font-weight:600;
+    border:2px solid var(--pink);background:var(--pink);color:var(--ink);
+    box-shadow:5px 5px 0 rgba(255,45,119,.3);transition:.14s;display:inline-block}
+  #enter:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 rgba(255,45,119,.38)}
+  #enter:focus-visible{outline:2px solid var(--rose);outline-offset:4px}
+  #hint{position:fixed;left:0;right:0;bottom:26px;text-align:center;z-index:10;
+    font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:#8a4560;
+    animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+  body{cursor:pointer}
+  #audioBox{cursor:default}
   @media (max-width:640px){
     #audioBox{top:14px;right:14px;padding:10px 12px}
     #audioBox .label{display:none}
@@ -79,7 +63,7 @@
   }
   @media (prefers-reduced-motion:reduce){
     body.playing #bars i{animation:none}
-    #ticker .strip{animation:none}
+    #hint{animation:none;opacity:.8}
   }
 </style>
 </head>
@@ -96,25 +80,13 @@
 </div>
 
 <div class="ui" id="center">
-  <div id="avatar"><canvas id="av" width="12" height="12" aria-hidden="true"></canvas></div>
   <div id="wordmark">ARIEL&nbsp;BODIK</div>
-  <div id="role">accounting × code × sports finance</div>
-  <div id="pitch">
-    B.S. Accounting, FDU '26. I don't just study finance — I <b>build working tools</b> for it:
-    audit analytics, AI workflows, and an NBA salary-cap simulator, all shipped live.
-    <b>Every lit building on the skyline is one. Click around.</b>
-  </div>
-  <div id="btns">
-    <a class="pxbtn primary" href="index.html">Enter the site</a>
-    <a class="pxbtn" href="mailto:bodika24@gmail.com">Email me</a>
-  </div>
+  <div id="role">accounting &times; code &times; sports finance</div>
+  <a id="enter" href="index.html">Enter the site &rarr;</a>
 </div>
 
-<div id="tip"><div class="t"></div><div class="d"></div><span class="go">▸ click to open</span></div>
+<div id="hint">click anywhere to enter</div>
 
-<div class="ui" id="cornerHint">hover a building · you're floating on the hudson</div>
-
-<div class="ui" id="ticker"><div class="strip" id="strip"></div></div>
 
 <script>
 (function(){
@@ -138,12 +110,17 @@
   var FONT={
     A:['010','101','111','101','101'], B:['110','101','110','101','110'],
     C:['011','100','100','100','011'], D:['110','101','101','101','110'],
-    E:['111','100','110','100','111'], G:['011','100','101','101','011'],
-    I:['111','010','010','010','111'], K:['101','110','100','110','101'],
-    L:['100','100','100','100','111'], M:['10001','11011','10101','10001','10001'],
+    E:['111','100','110','100','111'], F:['111','100','110','100','100'],
+    G:['011','100','101','101','011'], H:['101','101','111','101','101'],
+    I:['111','010','010','010','111'], J:['001','001','001','101','010'],
+    K:['101','110','100','110','101'], L:['100','100','100','100','111'],
+    M:['10001','11011','10101','10001','10001'], N:['101','111','111','111','101'],
     O:['111','101','101','101','111'], P:['110','101','110','100','100'],
-    R:['110','101','110','101','101'], S:['011','100','010','001','110'],
-    T:['111','010','010','010','010'], Y:['101','101','010','010','010'],
+    Q:['111','101','101','111','001'], R:['110','101','110','101','101'],
+    S:['011','100','010','001','110'], T:['111','010','010','010','010'],
+    U:['101','101','101','101','111'], V:['101','101','101','101','010'],
+    W:['10001','10001','10101','11011','10001'], X:['101','101','010','101','101'],
+    Y:['101','101','010','010','010'], Z:['111','001','010','100','111'],
     ' ':['0','0','0','0','0']
   };
   function textW(t){var w=0;for(var i=0;i<t.length;i++){var g=FONT[t[i]];w+=(g?g[0].length:3)+1;}return w-1;}
@@ -170,7 +147,7 @@
   function waterTank(g,x,y){ g.fillStyle=P.lineDim; g.fillRect(x,y,5,4); px(g,x+2,y-1,P.lineDim); }
 
   /* ---------- NYC landmark drawing ---------- */
-  function drawEmpire(g,x,base,lm){
+  function drawEmpire(g,x,base){
     /* tiered setbacks, ARIEL marquee, spire */
     var tiers=[{w:28,h:58},{w:20,h:26},{w:14,h:20},{w:8,h:12}];
     var cxx=x, top=base;
@@ -188,11 +165,8 @@
     g.fillRect(Math.round(cxCenter)-1,top-8,2,8);
     g.fillRect(Math.round(cxCenter),top-14,1,6);
     px(g,Math.round(cxCenter),top-15,P.white);
-    /* marquee on the main shaft */
-    g.fillStyle='#1c0712'; g.fillRect(x+3,base-52,tiers[0].w-6,9);
-    var tw2=textW(lm.label);
-    drawPixText(g,lm.label,Math.round(cxCenter-tw2/2),base-50,P.white);
-    landBoxes.push({x:x-1,y:top-16,w:tiers[0].w+2,h:base-(top-16),lm:lm});
+    return 30;
+
   }
 
   function drawChrysler(g,x,base){
@@ -211,6 +185,7 @@
     }
     g.fillStyle=P.lineDim; g.fillRect(Math.round(x+w/2),cy-7,1,7);
     px(g,Math.round(x+w/2),cy-8,P.white);
+    return w;
   }
 
   function drawWTC(g,x,base){
@@ -227,9 +202,10 @@
     /* antenna */
     g.fillRect(Math.round(x+w/2),top-16,1,16);
     px(g,Math.round(x+w/2),top-17,P.white);
+    return w;
   }
 
-  function drawArena(g,x,w,base,lm){
+  function drawArena(g,x,w,base){
     var domeH=24, wallH=14, top=base-wallH-domeH;
     g.fillStyle=P.lineDim;
     for(var c=0;c<=w;c++){
@@ -239,50 +215,33 @@
     }
     g.fillRect(x,base-wallH,1,wallH); g.fillRect(x+w,base-wallH,1,wallH);
     g.fillRect(x,base,w+1,1);
-    g.fillStyle='#1c0712'; g.fillRect(x+4,base-wallH-2,w-8,9);
-    g.fillStyle=P.lineDim; g.fillRect(x+4,base-wallH-2,w-8,1); g.fillRect(x+4,base-wallH+6,w-8,1);
-    var tw=textW(lm.label);
-    drawPixText(g,lm.label,x+Math.round((w-tw)/2),base-wallH,P.white);
+
     for(var c2=6;c2<w-4;c2+=5){
       var t3=(c2-w/2)/(w/2);
       var y2=base-wallH-Math.round(Math.sqrt(Math.max(0,1-t3*t3))*domeH)+3;
       if(Math.random()<.7) px(g,x+c2,y2,P.winDim);
     }
     px(g,x+Math.round(w/2),top-2,P.white);
-    landBoxes.push({x:x,y:top-4,w:w+1,h:base-(top-4),lm:lm});
   }
 
-  function drawToolTower(g,x,base,lm){
-    var w=lm.w, h=rint(lm.h[0],lm.h[1]), top=base-h;
+  function drawTower(g,x,base){
+    var w=rint(18,34), h=rint(60,124), top=base-h;
     buildingOutline(g,x,w,top,base,P.lineDim);
-    windows(g,x,w,top+16,base,P.winDim,.26);
-    g.fillStyle='#1c0712'; g.fillRect(x+2,top+5,w-4,9);
-    var tw=textW(lm.label);
-    drawPixText(g,lm.label,x+Math.round((w-tw)/2),top+7,P.white);
-    px(g,x+Math.round(w/2),top-2,P.win);
-    if(Math.random()<.6) waterTank(g,x+rint(2,w-8),top-4);
-    landBoxes.push({x:x,y:top-3,w:w,h:base-(top-3),lm:lm});
+    windows(g,x,w,top,base,Math.random()<.5?P.win:P.winDim,.24);
+    if(Math.random()<.5) waterTank(g,x+rint(2,w-8),top-4);
+    if(Math.random()<.35) px(g,x+Math.round(w/2),top-2,P.win);
     return w;
   }
 
+
   /* ---------- scene composition ---------- */
+  /* Landmarks are decorative only on the splash page: no labels, no links.
+     Placed at fixed fractions so the skyline reads as New York at any width. */
   var LANDMARKS=[
-    {kind:'tool', label:'LEDGER', frac:.045, w:34, h:[104,118], url:'tools/ledgerlens.html',
-     name:'LEDGERLENS', desc:'Benford\u2019s-Law anomaly scanner. Paste financial data, it flags what an auditor should look at twice.'},
-    {kind:'chrysler', frac:.155},
-    {kind:'tool', label:'PROMPT', frac:.235, w:34, h:[92,104], url:'tools/promptlab.html',
-     name:'PROMPTLAB', desc:'A prompt-engineering workbench for getting better output from AI models.'},
-    {kind:'empire', label:'ARIEL', frac:.36, url:'index.html',
-     name:'ARIELBODIK.COM', desc:'The full portfolio \u2014 all tools, the AI assistant, and the story.'},
-    {kind:'tool', label:'CLARITY', frac:.53, w:38, h:[96,108], url:'tools/claritycheck.html',
-     name:'CLARITYCHECK', desc:'AI writing analyzer \u2014 scores clarity and suggests sharper phrasing.'},
-    {kind:'arena', label:'CAPROOM', frac:.645, w:68, url:'tools/caproom.html',
-     name:'CAPROOM', desc:'NBA salary-cap & luxury-tax simulator \u2014 all 30 teams\u2019 real payrolls, bracketed tax math, apron rules.'},
-    {kind:'tool', label:'TIME', frac:.77, w:28, h:[84,96], url:'tools/timeblock.html',
-     name:'TIMEBLOCK', desc:'A time-blocking planner for structured, focused workdays.'},
-    {kind:'wtc', frac:.855},
-    {kind:'tool', label:'SPACE', frac:.93, w:32, h:[98,110], url:'tools/spaceplanner.html',
-     name:'SPACEPLANNER', desc:'A drag-and-drop room sketcher \u2014 the fun one.'}
+    {kind:'chrysler', frac:.200},
+    {kind:'empire',   frac:.400},
+    {kind:'arena',    frac:.620, w:54},
+    {kind:'wtc',      frac:.800}
   ];
   var landBoxes=[];
 
@@ -302,27 +261,25 @@
   function makeMain(){
     var g=mainC.getContext('2d'); g.clearRect(0,0,mainC.width,mainC.height);
     landBoxes=[];
-    var base=H-WATER;
-    var placed=LANDMARKS.map(function(l){return Object.assign({},l,{px:Math.round(l.frac*mainC.width)});});
-    var x=-6, li=0;
-    while(x<mainC.width+10){
-      var next=placed[li];
-      if(next && x>=next.px){
-        if(next.kind==='arena'){ drawArena(g,x,next.w,base,next); x+=next.w+rint(5,9); }
-        else if(next.kind==='empire'){ drawEmpire(g,x,base,next); x+=30+rint(5,9); }
-        else if(next.kind==='chrysler'){ drawChrysler(g,x,base); x+=20+rint(4,8); }
-        else if(next.kind==='wtc'){ drawWTC(g,x,base); x+=24+rint(4,8); }
-        else { var used=drawToolTower(g,x,base,next); x+=used+rint(4,9); }
-        li++; continue;
+    var base=H-WATER, Wm=mainC.width;
+    var marks=LANDMARKS.map(function(l){return {at:Math.round(l.frac*Wm),kind:l.kind,w:l.w};});
+    var mi=0, x=-8;
+    while(x<Wm+10){
+      var m=marks[mi];
+      if(m && x>=m.at){
+        if(m.kind==='chrysler') x+=drawChrysler(g,x,base)+rint(5,10);
+        else if(m.kind==='empire') x+=drawEmpire(g,x,base)+rint(5,10);
+        else if(m.kind==='arena') { drawArena(g,x,m.w,base); x+=m.w+rint(5,10); }
+        else { x+=drawWTC(g,x,base)+rint(5,10); }
+        mi++; continue;
       }
-      var fw=rint(13,24), fh=rint(36,78), ftop=base-fh;
-      if(next && x+fw>next.px-3){ x=next.px; continue; }
-      buildingOutline(g,x,fw,ftop,base,P.lineFaint);
-      if(Math.random()<.4) waterTank(g,x+rint(2,fw-7),ftop-4);
-      windows(g,x,fw,ftop,base,Math.random()<.4?P.winDim:'#7c2a4a',.18);
-      x+=fw+rint(3,8);
+      var nextAt=m?m.at:Wm+20, w=rint(18,34);
+      if(x+w>nextAt-4){ x=nextAt; continue; }
+      x+=drawTower(g,x,base)+rint(3,8);
     }
   }
+
+
 
   function makeStars(){
     stars=[];
@@ -449,28 +406,39 @@
     W=Math.min(4096,Math.max(320,Math.ceil(H*ratio)));
     cv.width=W; cv.height=H;
     farC=document.createElement('canvas'); farC.width=W+80; farC.height=H;
-    mainC=document.createElement('canvas'); mainC.width=W+120; mainC.height=H;
+    mainC=document.createElement('canvas'); mainC.width=W+60; mainC.height=H;
     makeFar(); makeMain(); makeStars(); spawnVessels();
   }
   addEventListener('resize',resize); resize();
   /* the artifact/iframe may report size 0 at first paint — re-measure shortly after */
   setTimeout(resize,80); addEventListener('load',resize);
 
-  var mx=.5,my=.45,smx=.5,smy=.45, mouseCX=0,mouseCY=0, hovered=null;
-  var tip=document.getElementById('tip');
+  var mx=.5,my=.45,smx=.5,smy=.45;
   addEventListener('mousemove',function(e){
     mx=e.clientX/innerWidth; my=e.clientY/innerHeight;
-    mouseCX=e.clientX; mouseCY=e.clientY;
     var g=document.getElementById('glow');
     g.style.left=e.clientX+'px'; g.style.top=e.clientY+'px';
   });
   addEventListener('touchmove',function(e){
     if(e.touches[0]){mx=e.touches[0].clientX/innerWidth;my=e.touches[0].clientY/innerHeight;}
   },{passive:true});
-  cv.addEventListener('click',function(){ if(hovered) location.href=hovered.lm.url; });
 
-  window.CITY={ boxes:function(){return landBoxes;}, hovered:function(){return hovered?hovered.lm.name:null;},
-    vessels:function(){return vessels.length;}, jumpers:function(){return jumpers.length;} };
+
+  /* the entire page is a link into the site */
+  var DEST='index.html', going=false;
+  function enter(e){
+    if(going) return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('#audioBox')) return;
+    going=true; location.href=DEST;
+  }
+  document.addEventListener('click',enter);
+  document.addEventListener('touchend',enter,{passive:true});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '||e.key==='Spacebar'){
+      if(document.activeElement&&document.activeElement.id==='muteBtn') return;
+      e.preventDefault(); enter();
+    }
+  });
 
   var t=0;
   function frame(){
@@ -499,7 +467,7 @@
 
     /* skylines */
     cx.drawImage(farC,Math.round(-40-ox*24),Math.round(-oy*5));
-    var dxM=Math.round(-60-ox*42), dyM=Math.round(-oy*9);
+    var dxM=Math.round(-30-ox*24), dyM=Math.round(-oy*9);
     cx.drawImage(mainC,dxM,dyM);
 
     /* ---- the Hudson ---- */
@@ -541,26 +509,6 @@
     maybeSpawnJumper(t);
     drawJumpers(t,waterY,ox);
 
-    /* hover detection */
-    var ix=mouseCX/innerWidth*W, iy=mouseCY/innerHeight*H;
-    hovered=null;
-    for(var lb=0;lb<landBoxes.length;lb++){
-      var b=landBoxes[lb];
-      if(ix>=b.x+dxM && ix<=b.x+dxM+b.w && iy>=b.y+dyM && iy<=b.y+dyM+b.h){ hovered={lm:b.lm,box:{x:b.x+dxM,y:b.y+dyM,w:b.w,h:b.h}}; break; }
-    }
-    if(hovered){
-      cx.strokeStyle=P.line; cx.lineWidth=1;
-      cx.strokeRect(hovered.box.x-1.5,hovered.box.y-1.5,hovered.box.w+3,hovered.box.h+3);
-      cv.style.cursor='pointer';
-      tip.style.display='block';
-      tip.querySelector('.t').textContent=hovered.lm.name;
-      tip.querySelector('.d').textContent=hovered.lm.desc;
-      var tx=Math.min(innerWidth-290,mouseCX+16), ty=Math.min(innerHeight-130,mouseCY+16);
-      tip.style.left=tx+'px'; tip.style.top=ty+'px';
-    } else {
-      cv.style.cursor='default'; tip.style.display='none';
-    }
-
     /* scanlines */
     cx.fillStyle='rgba(0,0,0,.14)';
     for(var yy=0;yy<H;yy+=3) cx.fillRect(0,yy,W,1);
@@ -569,27 +517,6 @@
   }
   requestAnimationFrame(frame);
 
-  /* pixel monogram */
-  (function(){
-    var a=document.getElementById('av').getContext('2d');
-    var M=['000111111000','001222222100','012222222210','012233332210','012232232210','012233332210',
-           '012232232210','012232232210','001222222100','011122211100','111111111111','110111111011'];
-    var cmap={'1':'#8a1f45','2':'#12040c','3':'#ff2d77'};
-    for(var y=0;y<12;y++)for(var x=0;x<12;x++){var ch=M[y][x];if(cmap[ch]){a.fillStyle=cmap[ch];a.fillRect(x,y,1,1);}}
-  })();
-
-  /* ticker */
-  (function(){
-    var items=[
-      '<b>B.S. Accounting</b> · Fairleigh Dickinson · Dec 2026','CPA track',
-      '<b>7 web tools</b> designed, built & shipped','Benford\u2019s-Law audit analytics',
-      '<b>NBA cap & luxury-tax simulator</b> · all 30 teams','Advanced Excel · Power Query · PivotTables',
-      'QuickBooks · GAAP','HTML / CSS / JavaScript','AI-integrated workflows',
-      'Russian conversational · Spanish basic','<b>Target: sports front-office finance</b>'
-    ];
-    var half=items.map(function(i){return '<span>'+i+'</span>';}).join('');
-    document.getElementById('strip').innerHTML=half+half;
-  })();
 
   /* chiptune */
   var ac=null,playing=false,seqTimer=null;
@@ -616,7 +543,8 @@
     },250);
   }
   function stopMusic(){ if(seqTimer){clearInterval(seqTimer);seqTimer=null;} if(ac) ac.suspend(); }
-  btn.addEventListener('click',function(){
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
     playing=!playing;
     document.body.classList.toggle('playing',playing);
     btn.textContent=playing?'🔊':'🔇';
