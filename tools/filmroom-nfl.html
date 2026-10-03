@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FilmRoom NFL — Ariel Bodik</title>
+<meta name="description" content="Real NFL plays animated to scale, with context, formations, coverages, routes and why each play worked.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
+    --line:#26263a;--line-bright:#34344e;--text:#f4f4f8;--text-dim:#a0a0b8;--text-faint:#6a6a85;
+    --lime:#c6ff3a;--violet:#7c5cff;--cyan:#3affe0;--pink:#ff5c8a;--warn:#ffcf3a;--accent:#c6ff3a;
+    --tele:#eaff3d;--orng:#ffb72b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  nav{position:sticky;top:0;z-index:50;background:rgba(10,10,15,.8);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1280px;margin:0 auto;gap:12px;flex-wrap:wrap}
+  .brand{font-family:'Clash Display';font-weight:600;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;background:var(--lime);border-radius:50%}
+  .navr{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .back,.sib{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim)}
+  .sib.cur{color:var(--pink);font-weight:700}
+  .sib:hover{color:var(--pink)}
+  .head{padding:44px 0 18px}
+  .kick{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.12em;text-transform:uppercase;display:inline-flex;gap:8px;padding:6px 13px;margin-bottom:18px}
+  h1{font-family:'Clash Display';font-weight:600;font-size:clamp(32px,5vw,54px);letter-spacing:-.02em;line-height:1.05}
+  .head p{margin-top:14px;color:var(--text-dim);font-size:16px;max-width:860px;line-height:1.65}
+  h2.sec{font-family:'Clash Display';font-weight:600;font-size:22px;margin:6px 0 12px}
+  .panel{background:var(--surface);border:1px solid var(--line);padding:22px;margin-bottom:22px}
+  .panel h3{font-family:'Clash Display';font-weight:600;font-size:18px;margin-bottom:10px}
+
+  /* play picker */
+  #picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:8px 0 24px}
+  button.pick{display:flex;flex-direction:column;gap:5px;text-align:left;padding:14px 16px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+  .pick .pk-tag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+  .pick .pk-t{font-family:'Clash Display';font-weight:600;font-size:18px;line-height:1.15}
+  .pick .pk-s{font-size:12px;opacity:.8;line-height:1.45}
+  button.pick.on{background:#15130f !important;color:#fff !important;box-shadow:4px 4px 0 var(--pink) !important}
+
+  /* layout */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:22px;align-items:start;margin-top:26px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+  /* film monitor */
+  .monitor{background:#0d0f0c;border:2px solid #1a1a1a;box-shadow:6px 6px 0 #1a1a1a;position:relative}
+  .mon-top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#15130f;color:#cfcabd;font-family:'JetBrains Mono';font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .mon-top .rec{display:flex;gap:7px;align-items:center}.mon-top .rec i{width:8px;height:8px;border-radius:50%;background:#ff3b3b;display:inline-block;animation:bl 1.4s infinite}
+  @keyframes bl{50%{opacity:.25}}
+  #film{position:relative;width:100%;margin:0 auto;overflow:hidden;cursor:pointer;background:#0d0f0c}
+  #film svg{width:100%;height:100%;display:block}
+  #badge{background:var(--tele);color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:900;font-size:clamp(14px,1.8vw,21px);padding:7px 14px;border-bottom:2px solid #111}
+  .cap{display:grid;grid-template-columns:auto 1fr;gap:0;background:#15130f;color:#f4f1ea;border-top:2px solid #1a1a1a;min-height:86px}
+  .cap .cn{background:var(--pink);color:#fff;font-family:'JetBrains Mono';font-weight:800;font-size:12px;padding:12px 12px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:84px;text-align:center}
+  .cap .cn small{font-size:9.5px;letter-spacing:.12em;opacity:.85}
+  .cap .cb{padding:11px 16px}
+  .cap .cb #cap-t{font-family:'Clash Display';font-weight:600;font-size:18px;display:block;margin-bottom:3px;color:var(--tele)}
+  .cap .cb #cap-x b{color:#fff}
+  .cap .cb span{font-size:14px;line-height:1.55;color:#e9e5da;font-family:'Familjen Grotesk',sans-serif}
+  .ctrl{background:#fff;border-top:2px solid #1a1a1a;padding:12px 12px 10px}
+  .scrubwrap{position:relative;height:26px;margin:0 2px 10px}
+  .track{position:absolute;left:0;right:0;top:10px;height:6px;background:#e6e1d5;border:1.5px solid #1a1a1a}
+  #prog{position:absolute;left:0;top:0;bottom:0;background:var(--pink)}
+  #ticks i{position:absolute;top:-6px;width:3px;height:16px;background:#1a1a1a;transform:translateX(-1px)}
+  #scrub{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;height:26px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .row button{padding:7px 12px;font-size:12.5px;cursor:pointer}
+  .row .sp{flex:1}
+  #tread{font-family:'JetBrains Mono';font-size:12px;color:#4a463e;min-width:110px;text-align:right}
+  .tg{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;padding:4px 8px;border:2px solid #1a1a1a;background:#faf8f3;user-select:none}
+  .tg input{width:14px;height:14px;accent-color:#ff2d77}
+  .row2{margin-top:9px;padding-top:9px;border-top:1.5px dashed #c9c3b5}
+  .hint{font-family:'JetBrains Mono';font-size:11px;color:#7a756a;margin-top:8px}
+
+  /* context */
+  #scorebug{background:#15130f;color:#fff;border:2px solid #1a1a1a;margin-bottom:14px}
+  .sb-row{display:flex;align-items:stretch}
+  .sb-team{flex:1;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-left:8px solid var(--tc)}
+  .sb-ab{font-family:'Clash Display';font-weight:600;font-size:18px}
+  .sb-sc{font-family:'JetBrains Mono';font-weight:800;font-size:24px}
+  .sb-meta{background:#2a2720;padding:8px 12px;display:flex;flex-direction:column;justify-content:center;font-family:'JetBrains Mono';font-size:12px;text-align:center;min-width:86px}
+  .sb-meta b{color:var(--tele)}
+  .sb-sit{background:var(--tele);color:#111;font-family:'JetBrains Mono';font-weight:800;font-size:12.5px;padding:6px 12px;letter-spacing:.03em}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1.5px dashed #d8d2c4;font-size:13.5px}
+  .kv span{color:#4a463e}.kv b{text-align:right}
+  #story p{font-size:14.5px;line-height:1.7;margin-top:12px;color:#2b2822;font-family:'Familjen Grotesk',sans-serif}
+  #story b{color:#15130f}
+
+  /* beats */
+  #beats{display:grid;gap:8px}
+  button.beat{display:grid;grid-template-columns:42px 1fr auto;gap:12px;text-align:left;padding:10px 12px;cursor:pointer;align-items:start}
+  .beat .bt-n{font-family:'JetBrains Mono';font-weight:800;font-size:15px;color:var(--pink)}
+  .beat .bt-b > b{display:block;font-family:'Clash Display';font-weight:600;font-size:15.5px;margin-bottom:2px}
+  .beat .bt-b span{font-size:13.5px;line-height:1.6;color:#4a463e;font-family:'Familjen Grotesk',sans-serif}
+  .beat .bt-t{font-family:'JetBrains Mono';font-size:11px;color:#7a756a}
+  button.beat.on{background:#fffbe0 !important;color:#15130f !important;border-color:#1a1a1a !important;box-shadow:4px 4px 0 var(--pink) !important}
+  button.beat.on .bt-n{color:#ff2d77}
+
+  /* breakdowns */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:900px){.two{grid-template-columns:1fr}}
+  .bd-head{font-size:14.5px;line-height:1.65;margin-bottom:10px;font-family:'Familjen Grotesk',sans-serif;color:#2b2822}
+  .facts{margin-bottom:12px}
+  .item,.why{display:grid;grid-template-columns:22px 1fr;gap:12px;padding:11px 10px;border:2px solid transparent;cursor:default;margin:0 -10px}
+  .item[data-focus],.why[data-focus]{cursor:pointer}
+  .item[data-focus]:hover,.why[data-focus]:hover{border-color:#1a1a1a;background:#faf8f3}
+  .item.foc,.why.foc{border-color:#ff2d77;background:#fff5f8}
+  .item .sw{width:18px;height:18px;border:2px solid #1a1a1a;margin-top:3px}
+  .item div > b,.why div > b{font-family:'Clash Display';font-weight:600;font-size:15.5px}
+  .item p,.why p{font-size:13.8px;line-height:1.65;color:#3a362e;margin-top:3px;font-family:'Familjen Grotesk',sans-serif}
+  .why .wn{width:22px;height:22px;background:#15130f;color:var(--tele);font-family:'JetBrains Mono';font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .tapnote{font-family:'JetBrains Mono';font-size:11px;color:#7a756a;margin:-4px 0 10px}
+  #sources{font-family:'JetBrains Mono';font-size:11.5px;color:#4a463e;line-height:1.8}
+  #sources a{color:#ff2d77;text-decoration:underline}
+  #sources span{color:#7a756a}
+
+  /* learn */
+  .gl{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+  .gl div{border:2px solid #1a1a1a;padding:10px 12px;background:#faf8f3}
+  .gl b{font-family:'JetBrains Mono';font-weight:800;color:#ff2d77;margin-right:6px}
+  .gl i{font-style:normal;font-weight:700}
+  .gl p{font-size:13px;line-height:1.55;color:#3a362e;margin-top:3px;font-family:'Familjen Grotesk',sans-serif}
+  #concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:18px}
+  .concept{border:2px solid #1a1a1a;background:#fff;box-shadow:3px 3px 0 #1a1a1a}
+  .concept .c-fig{width:100%;background:#0d0f0c;border-bottom:2px solid #1a1a1a}
+  .concept .c-fig svg{width:100%;height:100%;display:block}
+  .concept > b{display:block;font-family:'Clash Display';font-weight:600;font-size:16px;padding:10px 12px 0}
+  .concept p{font-size:13px;line-height:1.6;color:#3a362e;padding:4px 12px 12px;font-family:'Familjen Grotesk',sans-serif}
+  .disc{font-family:'JetBrains Mono';font-size:11px;color:#7a756a;line-height:1.7}
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--text-faint);font-size:13px;text-align:center;margin-top:20px}
+  .tok{cursor:pointer}
+</style>
+<link rel="stylesheet" href="../core-theme.css">
+</head>
+<body>
+<nav><div class="nav-in">
+  <a href="../index.html" class="brand"><span class="dot"></span>ARIEL BODIK</a>
+  <div class="navr"><a href="filmroom-nfl.html" class="sib cur">NFL</a><a href="filmroom-nhl.html" class="sib">NHL</a><a href="filmroom-nba.html" class="sib">NBA</a><a href="../index.html" class="back">← all tools</a></div>
+</div></nav>
+
+<header class="head wrap">
+  <div class="kick">◆ Sports Film Study · NFL</div>
+  <h1>FilmRoom NFL <span class="g">real plays, broken down</span></h1>
+  <p>Pick a famous play. Get the situation, watch it run on a to-scale overhead field, then see the offense, the defense and the reason it ended the way it did — telestrated the way coaches mark up film. Every yard line, hash mark and number is placed to NFL rulebook spacing.</p>
+</header>
+
+<main class="wrap">
+  <h2 class="sec">Pick a play</h2>
+  <div id="picker"></div>
+
+  <div id="film-wrap">
+      <div class="monitor">
+        <div class="mon-top"><span class="rec"><i></i>ALL-22 · overhead</span><span>Overhead · drawn to scale</span></div>
+        <div id="badge"></div>
+        <div id="film" title="Click a player to spotlight them"></div>
+        <div class="cap"><div class="cn"><small>BEAT</small><span id="cap-n">01</span></div><div class="cb"><b id="cap-t"></b><span id="cap-x"></span></div></div>
+        <div class="ctrl">
+          <div class="scrubwrap"><div class="track"><div id="prog"></div><div id="ticks"></div></div><input type="range" id="scrub" min="0" max="1" step="0.01" value="0" aria-label="Scrub through the play"></div>
+          <div class="row">
+            <button id="pp" class="primary">▶ Play</button>
+            <button id="pb" title="Previous beat (←)">◀ Beat</button>
+            <button id="nb" title="Next beat (→)">Beat ▶</button>
+            <button id="rs" title="Back to the start">⟲</button>
+            <span class="sp"></span>
+            <button class="spd" data-s="0.25">¼×</button><button class="spd on" data-s="0.5">½×</button><button class="spd" data-s="1">1×</button>
+            <span id="tread"></span>
+          </div>
+          <div class="row row2">
+            <label class="tg"><input type="checkbox" id="t-coach">Coach mode (pause at each beat)</label>
+            <label class="tg"><input type="checkbox" id="t-routes">Routes</label>
+            <label class="tg"><input type="checkbox" id="t-labels">Callouts</label>
+            <label class="tg"><input type="checkbox" id="t-names">Names</label>
+            <label class="tg"><input type="checkbox" id="t-all">All positions</label>
+          </div>
+          <div class="hint">Space = play/pause · ← → = step beats · click any player to spotlight them · ½× is the default so the action is readable</div>
+        </div>
+      </div>
+    </div>
+
+
+  <div class="grid">
+    <div class="panel">
+      <h3>The situation</h3>
+      <div id="scorebug"></div>
+      <div id="ctx-list"></div>
+      <div id="story"></div>
+    </div>
+    <div class="panel">
+      <h3>Beat by beat</h3>
+      <p class="tapnote">Tap a beat to jump the film there.</p>
+      <div id="beats"></div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="panel"><h3 id="off-h">Offense</h3><p class="tapnote">Tap a row to spotlight that player.</p><div id="off"></div></div>
+    <div class="panel"><h3 id="def-h">Defense</h3><p class="tapnote">Tap a row to spotlight that player.</p><div id="def"></div></div>
+  </div>
+
+  <div class="panel">
+    <h3>Why it happened the way it did</h3>
+    <div id="why"></div>
+    <div id="sources" style="margin-top:14px"></div>
+  </div>
+
+  <h2 class="sec" style="margin-top:34px">Learn to read it</h2>
+  <div class="panel">
+    <h3>Positions — names and jobs</h3>
+    <div class="gl"><div><b>QB</b><i>Quarterback</i><p>Takes the snap, reads the defense, hands off or throws.</p></div><div><b>RB / HB</b><i>Running back (halfback)</i><p>Lines up in the backfield; runs, catches, and helps block.</p></div><div><b>FB</b><i>Fullback</i><p>A bigger back who usually lead-blocks for the RB.</p></div><div><b>WR — X</b><i>Split end</i><p>Receiver on the line of scrimmage, usually the widest on his side.</p></div><div><b>WR — Z</b><i>Flanker</i><p>Receiver a step off the line, so he can go in motion.</p></div><div><b>Slot</b><i>Slot receiver</i><p>Lines up between the outside receiver and the line.</p></div><div><b>TE — Y</b><i>Tight end</i><p>Lines up next to a tackle; blocks like a lineman or runs routes.</p></div><div><b>LT · LG · C · RG · RT</b><i>Offensive line</i><p>Left tackle, left guard, center, right guard, right tackle. The center snaps the ball.</p></div><div><b>DE / EDGE</b><i>Defensive end</i><p>Rushes from the outside edge of the line; sets the edge against runs.</p></div><div><b>DT / NT</b><i>Defensive tackle / nose tackle</i><p>Inside linemen. A nose tackle lines up right over the center.</p></div><div><b>MIKE · WILL · SAM</b><i>Linebackers</i><p>Middle, weak-side and strong-side linebackers. They stop runs, cover, and blitz.</p></div><div><b>CB</b><i>Cornerback</i><p>Covers wide receivers. Press = right on the receiver at the snap; off = a few yards back.</p></div><div><b>NB</b><i>Nickel back</i><p>A fifth defensive back who usually covers the slot receiver.</p></div><div><b>FS · SS</b><i>Free and strong safety</i><p>The last line of defense. The free safety plays deep; the strong safety often plays closer to the line.</p></div><div><b>11, 12, 21…</b><i>Personnel groupings</i><p>First digit = running backs, second = tight ends. 11 = 1 RB, 1 TE, so 3 WR.</p></div></div>
+  </div>
+  <div class="panel">
+    <h3>Coverage shells and routes</h3>
+    <p class="tapnote">Offense in navy, defense in white. Shaded areas are zones; dashed orange arrows are man-to-man assignments; red arrows are blitzers.</p>
+    <div id="concepts"></div>
+  </div>
+  <div class="panel">
+    <p class="disc">Field: 120 × 53⅓ yards, 10-yard end zones, hash marks 70 ft 9 in from each sideline (18 ft 6 in apart, the same width as the goalposts), numbers 6 ft tall with their tops 9 yards from the sideline. Plays are reconstructed from broadcast footage and published accounts; spots and timing are close approximations, not tracking data. Team names are used for identification only.</p>
+  </div>
+</main>
+
+<footer>Ariel Bodik · FilmRoom · built as a self-contained page, no tracking, no data leaves your browser</footer>
+
+<script>
+/* FilmRoom engine — scale-accurate surfaces + animated telestration.
+   Native units: NFL = yards (120 x 53 1/3), NHL = feet (200 x 85), NBA = feet (94 x 50).
+   x runs along the length, y across (0 = top/far sideline). */
+window.Film = (function(){
+const NS='http://www.w3.org/2000/svg';
+function E(tag,a,p){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+const COL={y:'#eaff3d',o:'#ffb72b',c:'#7ef7ff',w:'#ffffff',r:'#ff4d6d',g:'#5dff7a',p:'#ff7ad9'};
+
+/* ---------------- surfaces ---------------- */
+const SURF={
+  nfl:{L:120,W:160/3,S:10,pad:3,bg:'#25602e',draw:drawNFL,tok:.62,ball:'football'},
+  nhl:{L:200,W:85,S:5,pad:4,bg:'#1f2b38',draw:drawNHL,tok:1.75,ball:'puck'},
+  nba:{L:94,W:50,S:10,pad:3,bg:'#3b2a1d',draw:drawNBA,tok:1.25,ball:'ball'}
+};
+
+function drawNFL(g,S){
+  const L=120,W=160/3,ln=.111*S; // 4-inch lines
+  E('rect',{x:-6*S,y:-6*S,width:132*S,height:(W+12)*S,fill:'#25602e'},g);
+  // 6-ft white border outside sidelines and end lines
+  E('rect',{x:-2*S,y:-2*S,width:124*S,height:(W+4)*S,fill:'#f4f4f0'},g);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,fill:'#2f7a3a'},g);
+  for(let x=10;x<110;x+=10)E('rect',{x:x*S,y:0,width:5*S,height:W*S,fill:'#348240'},g);
+  E('rect',{x:0,y:0,width:10*S,height:W*S,fill:'#2a6e35'},g);
+  E('rect',{x:110*S,y:0,width:10*S,height:W*S,fill:'#2a6e35'},g);
+  const ez=(x,rot)=>{const t=E('text',{x:x*S,y:W/2*S,fill:'rgba(255,255,255,.13)','font-size':4.2*S,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central','font-family':'Arial Black,Arial,sans-serif',transform:`rotate(${rot} ${x*S} ${W/2*S})`,'letter-spacing':S*.6},g);t.textContent='END ZONE';};
+  ez(5,-90);ez(115,90);
+  // yard lines every 5 yds, goal lines 8 in wide
+  for(let x=10;x<=110;x+=5){const w=(x===10||x===110)?.222*S:ln;E('rect',{x:x*S-w/2,y:0,width:w,height:W*S,fill:'#fff'},g);}
+  // hash marks (inbound lines 70'9" from each sideline, 2 ft long), sideline ticks
+  const h1=70.75/3,h2=W-h1;
+  for(let x=11;x<110;x++){ if(x%5===0)continue;
+    E('rect',{x:x*S-ln/2,y:(h1-2/3)*S,width:ln,height:2/3*S,fill:'#fff'},g);
+    E('rect',{x:x*S-ln/2,y:h2*S,width:ln,height:2/3*S,fill:'#fff'},g);
+    E('rect',{x:x*S-ln/2,y:(4/36)*S,width:ln,height:2/3*S,fill:'#fff'},g);
+    E('rect',{x:x*S-ln/2,y:(W-4/36-2/3)*S,width:ln,height:2/3*S,fill:'#fff'},g);}
+  // try-line marks: 1 yd long, 2 yds from each goal line
+  E('rect',{x:12*S-ln/2,y:(W/2-.5)*S,width:ln,height:S,fill:'#fff'},g);
+  E('rect',{x:108*S-ln/2,y:(W/2-.5)*S,width:ln,height:S,fill:'#fff'},g);
+  // numbers: 6 ft tall, tops 9 yds from the sideline; arrows point to nearer goal line
+  const num=(x,n,top)=>{const yb=top?9:W-9; // number top edge
+    const cy=top?(yb-1):(yb+1);
+    const d=String(n);const fs=2.75*S;
+    [[d[0],top?1.05:-1.05],[d[1],top?-1.05:1.05]].forEach(([ch,dx])=>{
+      const tx=(x+dx)*S,ty=cy*S;
+      const t=E('text',{x:tx,y:ty,fill:'#fff','font-size':fs,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central','font-family':'Arial Black,Arial,sans-serif',opacity:.92,transform:top?`rotate(180 ${tx} ${ty})`:''},g);t.textContent=ch;});
+    if(n!==50){const dir=x<60?-1:1;const ax=(x+dir*2.35)*S,ay=cy*S;
+      E('path',{d:`M${ax+dir*.55*S},${ay} L${ax},${ay-.28*S} L${ax},${ay+.28*S}Z`,fill:'#fff',opacity:.92},g);}};
+  [20,30,40,50,60,70,80,90,100].forEach(x=>{const n=x<=60?x-10:110-x;num(x,n,false);num(x,n,true);});
+  // goalposts on the end lines: uprights 18'6" apart
+  [0,120].forEach(x=>{E('rect',{x:x*S-.18*S,y:h1*S,width:.36*S,height:(h2-h1)*S,fill:'#ffd400',stroke:'#7a6500','stroke-width':.05*S},g);
+    E('rect',{x:(x?x:x-1.2)*S,y:(W/2-.12)*S,width:1.2*S,height:.24*S,fill:'#ffd400'},g);});
+  // pylons
+  [[10,0],[10,W],[0,0],[0,W],[110,0],[110,W],[120,0],[120,W]].forEach(([x,y])=>E('rect',{x:x*S-.17*S,y:y*S-.17*S,width:.34*S,height:.34*S,fill:'#ff7a00'},g));
+}
+
+function drawNHL(g,S){
+  const L=200,W=85,R=28;
+  E('rect',{x:-8*S,y:-8*S,width:216*S,height:101*S,fill:'#1f2b38'},g);
+  const id='rk'+Math.random().toString(36).slice(2,7);
+  const cp=E('clipPath',{id},g);E('rect',{x:0,y:0,width:L*S,height:W*S,rx:R*S,ry:R*S},cp);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,rx:R*S,ry:R*S,fill:'#f3f8fb'},g);
+  const c=E('g',{'clip-path':`url(#${id})`},g);
+  const red='#d6203a',blue='#1f4fbf',thin=2/12*S;
+  // goal lines 11 ft from end boards (2 in), trapezoid 18 ft at goal line -> 28 ft at boards
+  [11,189].forEach(x=>{E('rect',{x:x*S-thin/2,y:0,width:thin,height:W*S,fill:red},c);
+    const e=x<100?0:200;[-1,1].forEach(s=>E('line',{x1:x*S,y1:(42.5+s*9)*S,x2:e*S,y2:(42.5+s*14)*S,stroke:red,'stroke-width':thin},c));});
+  // blue lines 12 in wide; goal line to the line's far edge = 64 ft, leaving a 50-ft neutral zone (11+64+50+64+11 = 200)
+  [[74,75],[125,126]].forEach(([a,b])=>E('rect',{x:a*S,y:0,width:(b-a)*S,height:W*S,fill:blue},c));
+  E('rect',{x:99.5*S,y:0,width:S,height:W*S,fill:red},c);
+  E('rect',{x:99.5*S,y:0,width:S,height:W*S,fill:'none',stroke:'#fff','stroke-dasharray':`${2*S} ${2*S}`,'stroke-width':.25*S},c);
+  // center circle r=15, center dot 12 in
+  E('circle',{cx:100*S,cy:42.5*S,r:15*S,fill:'none',stroke:blue,'stroke-width':thin},c);
+  E('circle',{cx:100*S,cy:42.5*S,r:.5*S,fill:blue},c);
+  // referee crease r=10 at the boards
+  E('path',{d:`M${90*S},${W*S} A${10*S},${10*S} 0 0 1 ${110*S},${W*S}`,fill:'none',stroke:red,'stroke-width':thin},c);
+  // end-zone faceoff circles: dots 20 ft from goal line, 22 ft each side of center; r=15
+  [31,169].forEach(cx=>[20.5,64.5].forEach(cy=>{
+    E('circle',{cx:cx*S,cy:cy*S,r:15*S,fill:'none',stroke:red,'stroke-width':thin},c);
+    E('circle',{cx:cx*S,cy:cy*S,r:1*S,fill:red},c);
+    [-1,1].forEach(sx=>[-1,1].forEach(sy=>{const hx=(cx+sx*(5.583/2))*S;const y0=cy+sy*Math.sqrt(225-(5.583/2)**2);
+      E('line',{x1:hx,y1:y0*S,x2:hx,y2:(y0+sy*2)*S,stroke:red,'stroke-width':thin},c);}));}));
+  // neutral-zone dots 5 ft outside each blue line, in the neutral zone
+  [[80,20.5],[80,64.5],[120,20.5],[120,64.5]].forEach(([x,y])=>E('circle',{cx:x*S,cy:y*S,r:1*S,fill:red},c));
+  // creases + nets (6 ft wide posts, ~40 in deep)
+  [[11,1],[189,-1]].forEach(([gl,d])=>{const a=Math.sqrt(36-16);
+    E('path',{d:`M${gl*S},${38.5*S} L${(gl+d*a)*S},${38.5*S} A${6*S},${6*S} 0 0 ${d>0?1:0} ${(gl+d*a)*S},${46.5*S} L${gl*S},${46.5*S}Z`,fill:'#9fd3ff',stroke:red,'stroke-width':thin},c);
+    E('path',{d:`M${gl*S},${39.5*S} L${(gl-d*3.33)*S},${40.2*S} Q${(gl-d*3.6)*S},${42.5*S} ${(gl-d*3.33)*S},${44.8*S} L${gl*S},${45.5*S}`,fill:'rgba(255,255,255,.75)',stroke:red,'stroke-width':.35*S},c);});
+  E('rect',{x:0,y:0,width:L*S,height:W*S,rx:R*S,ry:R*S,fill:'none',stroke:'#e9c300','stroke-width':1.1*S},g);
+  E('rect',{x:-.6*S,y:-.6*S,width:(L+1.2)*S,height:(W+1.2)*S,rx:(R+.6)*S,ry:(R+.6)*S,fill:'none',stroke:'#0d1218','stroke-width':.5*S},g);
+}
+
+function drawNBA(g,S){
+  const L=94,W=50,lc='#f7f1e6',lw=2/12*S;
+  E('rect',{x:-5*S,y:-5*S,width:104*S,height:60*S,fill:'#3b2a1d'},g);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,fill:'#d7a467'},g);
+  for(let y=0;y<W;y+=1.2)E('line',{x1:0,y1:y*S,x2:L*S,y2:y*S,stroke:'rgba(110,60,20,.10)','stroke-width':.06*S},g);
+  const ln=(x1,y1,x2,y2,dash)=>E('line',{x1:x1*S,y1:y1*S,x2:x2*S,y2:y2*S,stroke:lc,'stroke-width':lw,'stroke-dasharray':dash||''},g);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,fill:'none',stroke:lc,'stroke-width':lw*1.2},g);
+  ln(47,0,47,W);
+  E('circle',{cx:47*S,cy:25*S,r:6*S,fill:'none',stroke:lc,'stroke-width':lw},g);
+  E('circle',{cx:47*S,cy:25*S,r:2*S,fill:'none',stroke:lc,'stroke-width':lw},g);
+  // sideline hashes 28 ft from each baseline (3 ft into court)
+  [28,66].forEach(x=>{ln(x,0,x,3);ln(x,W-3,x,W);});
+  [[0,1],[94,-1]].forEach(([b,d])=>{
+    const X=v=>b+d*v; const bx=X(5.25);
+    // painted lane 16 ft wide, free-throw line 19 ft from baseline
+    E('rect',{x:Math.min(X(0),X(19))*S,y:17*S,width:19*S,height:16*S,fill:'rgba(196,38,58,.55)',stroke:lc,'stroke-width':lw},g);
+    // free-throw circle r=6: solid outside lane, dashed inside
+    const fx=X(19);
+    E('path',{d:`M${fx*S},${19*S} A${6*S},${6*S} 0 0 ${d>0?1:0} ${fx*S},${31*S}`,fill:'none',stroke:lc,'stroke-width':lw},g);
+    E('path',{d:`M${fx*S},${19*S} A${6*S},${6*S} 0 0 ${d>0?0:1} ${fx*S},${31*S}`,fill:'none',stroke:lc,'stroke-width':lw,'stroke-dasharray':`${1.2*S} ${.9*S}`},g);
+    // lane-space marks
+    [7,8,11,14].forEach(v=>{ln(X(v),17,X(v),16.5);ln(X(v),33,X(v),33.5);});
+    // 3-pt: 22 ft corners (3 ft from sideline) to a 23'9" arc
+    const yc=Math.sqrt(23.75**2-22**2); // 8.95 ft
+    ln(X(0),3,X(5.25+yc),3);ln(X(0),47,X(5.25+yc),47);
+    E('path',{d:`M${X(5.25+yc)*S},${3*S} A${23.75*S},${23.75*S} 0 0 ${d>0?1:0} ${X(5.25+yc)*S},${47*S}`,fill:'none',stroke:lc,'stroke-width':lw},g);
+    // restricted area r=4 ft
+    E('path',{d:`M${X(4)*S},${21*S} L${bx*S},${21*S} A${4*S},${4*S} 0 0 ${d>0?1:0} ${bx*S},${29*S} L${X(4)*S},${29*S}`,fill:'none',stroke:lc,'stroke-width':lw},g);
+    // backboard 6 ft wide, 4 ft from baseline; rim 18 in diameter
+    E('line',{x1:X(4)*S,y1:22*S,x2:X(4)*S,y2:28*S,stroke:'#fff','stroke-width':.25*S},g);
+    E('line',{x1:X(4)*S,y1:25*S,x2:X(4.5)*S,y2:25*S,stroke:'#ff6a00','stroke-width':.15*S},g);
+    E('circle',{cx:bx*S,cy:25*S,r:.75*S,fill:'none',stroke:'#ff6a00','stroke-width':.16*S},g);
+  });
+}
+
+/* ---------------- helpers ---------------- */
+function lerp(a,b,u){return a+(b-a)*u;}
+function at(path,t){ // path: [[t,x,y],...]
+  if(t<=path[0][0])return [path[0][1],path[0][2]];
+  for(let i=1;i<path.length;i++){const p=path[i];if(t<=p[0]){const q=path[i-1];const u=(t-q[0])/((p[0]-q[0])||1);return [lerp(q[1],p[1],u),lerp(q[2],p[2],u)];}}
+  const l=path[path.length-1];return [l[1],l[2]];
+}
+
+/* ---------------- Film player ---------------- */
+function Film(host,opts){
+  this.host=host;this.opts=opts||{};this.t=0;this.speed=this.opts.speed||.5;this.playing=false;
+  this.show={routes:true,labels:true,names:true,coach:true};this.focus=null;
+  this.svg=E('svg',{class:'film-svg',preserveAspectRatio:'xMidYMid meet'},host);
+  this.defs=E('defs',{},this.svg);
+  this.gField=E('g',{},this.svg);this.gZones=E('g',{},this.svg);this.gRoutes=E('g',{},this.svg);this.gTrails=E('g',{},this.svg);
+  this.gTok=E('g',{},this.svg);this.gBall=E('g',{},this.svg);this.gNotes=E('g',{},this.svg);
+  this._raf=null;this._last=0;this.onTick=null;this.onBeat=null;
+}
+Film.prototype.M=function(x,y){const s=this.surf,S=s.S;
+  return this.orient==='up'?[y*S,(s.L-x)*S]:this.orient==='left'?[(s.L-x)*S,(s.W-y)*S]:[x*S,y*S];};
+Film.prototype.marker=function(color){
+  const id='ar'+color.replace(/[^a-z0-9]/gi,'');if(this.defs.querySelector('#'+id))return id;
+  const m=E('marker',{id,viewBox:'0 0 10 10',refX:6,refY:5,markerWidth:3.4,markerHeight:3.4,orient:'auto-start-reverse'},this.defs);
+  E('path',{d:'M0,0 L10,5 L0,10 Z',fill:color,stroke:'#111','stroke-width':.8},m);return id;};
+Film.prototype.load=function(play){
+  this.play=play;this.surf=SURF[play.surface];this.orient=play.orient||'right';
+  const s=this.surf,S=s.S;
+  [this.gField,this.gZones,this.gRoutes,this.gTrails,this.gTok,this.gBall,this.gNotes].forEach(g=>g.innerHTML='');
+  const fg=E('g',{},this.gField);
+  if(this.orient==='up')fg.setAttribute('transform',`matrix(0,-1,1,0,0,${s.L*S})`);
+  if(this.orient==='left')fg.setAttribute('transform',`rotate(180 ${s.L*S/2} ${s.W*S/2})`);
+  s.draw(fg,S);
+  const c=play.camera;const p1=this.M(c.x0,c.y0),p2=this.M(c.x1,c.y1);
+  const vx=Math.min(p1[0],p2[0]),vy=Math.min(p1[1],p2[1]),vw=Math.abs(p1[0]-p2[0]),vh=Math.abs(p1[1]-p2[1]);
+  this.vb=[vx,vy,vw,vh];this.svg.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);
+  this.u=vw/100; // UI unit
+  this.R=s.tok*S*(play.tokScale||1);
+  this.host.style.aspectRatio=`${vw} / ${vh}`;
+  this.R=s.tok*S*(play.tokScale||1);
+  // zones
+  (play.zones||[]).forEach(z=>{const col=COL[z.color]||z.color||COL.c;
+    const pts=z.pts.map(p=>this.M(p[0],p[1]).join(',')).join(' ');
+    E('polygon',{points:pts,fill:col,'fill-opacity':.2,stroke:col,'stroke-width':this.u*.25,'stroke-dasharray':`${this.u} ${this.u*.6}`},this.gZones);
+    if(z.label){const cx=z.pts.reduce((a,p)=>a+p[0],0)/z.pts.length,cy=z.pts.reduce((a,p)=>a+p[1],0)/z.pts.length;
+      const [sx,sy]=this.M(z.lx??cx,z.ly??cy);const t=E('text',{x:sx,y:sy,'text-anchor':'middle','dominant-baseline':'central',fill:'#fff','font-size':this.u*(play.zoneSize||2.6),'font-weight':700,'font-family':'JetBrains Mono,monospace',stroke:'#000','stroke-width':this.u*.5,'paint-order':'stroke'},this.gZones);t.textContent=z.label;}});
+  // routes (full, faint) + trails (bright, progressive)
+  this.routes=[];
+  play.players.forEach(p=>{if(!p.route)return;const col=COL[p.route.c]||p.route.c;
+    const from=p.route.from??0,to=p.route.to??Infinity;
+    const pts=p.path.filter(k=>k[0]>from&&k[0]<to).map(k=>[k[0],k[1],k[2]]);
+    const a=at(p.path,from);pts.unshift([from,a[0],a[1]]);
+    if(isFinite(to)){const b=at(p.path,to);pts.push([to,b[0],b[1]]);}
+    const d=pts.map((k,i)=>(i?'L':'M')+this.M(k[1],k[2]).join(',')).join(' ');
+    const mk=this.marker(col);const sw=this.R*.42;
+    const ghost=E('path',{d,fill:'none',stroke:col,'stroke-width':sw,'stroke-opacity':.28,'stroke-linejoin':'round','stroke-linecap':'round','stroke-dasharray':p.route.dash?`${sw*2} ${sw*1.4}`:''},this.gRoutes);
+    const halo=E('path',{fill:'none',stroke:'#0b0b0b','stroke-width':sw*1.9,'stroke-opacity':.55,'stroke-linejoin':'round','stroke-linecap':'round'},this.gTrails);
+    const live=E('path',{fill:'none',stroke:col,'stroke-width':sw,'stroke-linejoin':'round','stroke-linecap':'round','marker-end':`url(#${mk})`,'stroke-dasharray':p.route.dash?`${sw*2} ${sw*1.4}`:''},this.gTrails);
+    this.routes.push({p,pts,ghost,live,halo,from});});
+  // ball flight trail
+  this.flight=E('path',{fill:'none',stroke:'#fff','stroke-width':this.R*.22,'stroke-dasharray':`${this.R*.5} ${this.R*.45}`,opacity:.85},this.gTrails);
+  // tokens
+  this.toks={};
+  play.players.forEach(p=>{const g=E('g',{class:'tok'},this.gTok);const tm=play.teams[p.team];
+    const ring=E('circle',{r:this.R*1.85,fill:'none',stroke:COL.y,'stroke-width':this.R*.22,opacity:0},g);
+    E('circle',{r:this.R*1.08,fill:'rgba(0,0,0,.35)',cy:this.R*.18},g);
+    E('circle',{r:this.R,fill:tm.fill,stroke:tm.stroke,'stroke-width':this.R*.2},g);
+    const tx=E('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':this.R*(String(p.num??p.pos).length>2?.72:.95),'font-weight':800,fill:tm.text,'font-family':'JetBrains Mono,monospace'},g);tx.textContent=p.num??p.pos;
+    const lp=p.lp||(p.team==='D'?'t':'b');const nm=E('text',{'text-anchor':lp==='l'?'end':lp==='r'?'start':'middle',x:lp==='l'?-this.R*1.3:lp==='r'?this.R*1.3:0,y:lp==='t'?-this.R*1.45:lp==='b'?this.R*2.15:this.R*.32,'font-size':this.R*.82,'font-weight':700,fill:'#fff',stroke:'#000','stroke-width':this.R*.28,'paint-order':'stroke','font-family':'JetBrains Mono,monospace'},g);
+    nm.textContent=p.name?p.name:p.pos;
+    g.addEventListener('click',()=>{this.setFocus(this.focus===p.id?null:p.id);});
+    this.toks[p.id]={g,ring,nm,p};});
+  // ball
+  this.ballG=E('g',{},this.gBall);this.ballSh=E('ellipse',{fill:'rgba(0,0,0,.35)'},this.ballG);
+  const b=s.ball,R=this.R;
+  if(b==='football'){this.ballEl=E('g',{},this.ballG);E('ellipse',{rx:R*.62,ry:R*.38,fill:'#7a3f17',stroke:'#2b1406','stroke-width':R*.08},this.ballEl);E('line',{x1:-R*.2,x2:R*.2,y1:0,y2:0,stroke:'#fff','stroke-width':R*.08},this.ballEl);}
+  else if(b==='puck'){this.ballEl=E('g',{},this.ballG);E('circle',{r:R*.55,fill:'none',stroke:'#ffe14d','stroke-width':R*.16,opacity:.9},this.ballEl);E('circle',{r:R*.34,fill:'#0b0b0b'},this.ballEl);}
+  else{this.ballEl=E('g',{},this.ballG);E('circle',{r:R*.42,fill:'#e2701c',stroke:'#2a1405','stroke-width':R*.07},this.ballEl);E('line',{x1:-R*.42,x2:R*.42,y1:0,y2:0,stroke:'#2a1405','stroke-width':R*.06},this.ballEl);E('line',{y1:-R*.42,y2:R*.42,x1:0,x2:0,stroke:'#2a1405','stroke-width':R*.06},this.ballEl);}
+  // notes
+  this.notes=(play.notes||[]).map(n=>this.buildNote(n));
+  this.dur=play.dur;this.t=0;this.lastBeat=-1;this.render();
+};
+Film.prototype.buildNote=function(n){
+  const g=E('g',{opacity:0,class:'note'},this.gNotes);const u=this.u,fs=u*(this.play.noteSize||2.0);const col=COL[n.c||'y'];
+  const lines=n.text.split('\n');const w=Math.max(...lines.map(l=>l.length))*fs*.62+fs*1.1,h=lines.length*fs*1.22+fs*.7;
+  const lead=E('line',{stroke:col,'stroke-width':u*.38,'marker-end':`url(#${this.marker(col)})`},g);
+  const box=E('g',{},g);
+  E('rect',{x:-w/2,y:-h/2,width:w,height:h,fill:col,stroke:'#111','stroke-width':u*.22},box);
+  lines.forEach((l,i)=>{const t=E('text',{x:0,y:-h/2+fs*.35+fs*1.22*(i+.5)+fs*.05,'text-anchor':'middle','dominant-baseline':'central','font-size':fs,'font-weight':800,fill:'#111','font-family':'Arial,Helvetica,sans-serif'},box);t.textContent=l;});
+  const circ=E('circle',{fill:'none',stroke:col,'stroke-width':u*.4,r:this.R*1.75},g);
+  return {n,g,lead,box,circ,w,h};
+};
+Film.prototype.pos=function(id,t){const p=this.toks[id].p;return at(p.path,t);};
+Film.prototype.ballAt=function(t){
+  const kf=this.play.ball;const res=k=>k.on?this.pos(k.on,k.t):[k.x,k.y];
+  if(t<=kf[0].t){const k=kf[0];return {p:k.on?this.pos(k.on,t):[k.x,k.y],h:0,k:0};}
+  for(let i=1;i<kf.length;i++){const a=kf[i-1],b=kf[i];
+    if(t<=b.t){ if(a.on&&b.on&&a.on===b.on)return {p:this.pos(a.on,t),h:0,k:i};
+      const A=res(a),B=res(b);const u=(t-a.t)/((b.t-a.t)||1);
+      const d=Math.hypot(B[0]-A[0],B[1]-A[1]);const arc=b.arc??(this.surf.ball==='puck'?0:Math.min(d*.12,this.surf.ball==='ball'?4.5:5));
+      return {p:[lerp(A[0],B[0],u),lerp(A[1],B[1],u)],h:arc*4*u*(1-u),k:i,flight:{A,B,u,a,b}};}}
+  const l=kf[kf.length-1];return {p:l.on?this.pos(l.on,t):[l.x,l.y],h:0,k:kf.length};
+};
+Film.prototype.render=function(){
+  const t=this.t,R=this.R,S=this.surf.S;
+  for(const id in this.toks){const o=this.toks[id];const [x,y]=at(o.p.path,t);const [sx,sy]=this.M(x,y);
+    o.g.setAttribute('transform',`translate(${sx},${sy})`);
+    o.nm.style.display=(this.show.names&&(o.p.name||this.show.allNames))?'':'none';
+    const f=this.focus;o.g.style.opacity=f&&f!==id&&!(this.focusSet&&this.focusSet.includes(id))?.32:1;
+    o.ring.setAttribute('opacity',f===id?1:0);}
+  // trails
+  this.routes.forEach(r=>{r.ghost.style.display=this.show.routes?'':'none';
+    const vis=this.show.routes&&t>r.from;r.live.style.display=r.halo.style.display=vis?'':'none';if(!vis)return;
+    const pts=r.pts.filter(k=>k[0]<t).map(k=>[k[1],k[2]]);const cur=at(r.p.path,Math.min(t,r.pts[r.pts.length-1][0]));pts.push(cur);
+    const d=pts.map((k,i)=>(i?'L':'M')+this.M(k[0],k[1]).join(',')).join(' ');r.live.setAttribute('d',d);r.halo.setAttribute('d',d);
+    const f=this.focus;r.live.style.opacity=r.halo.style.opacity=f&&f!==r.p.id&&!(this.focusSet&&this.focusSet.includes(r.p.id))?.25:1;});
+  // ball
+  const b=this.ballAt(t);const [bx,by]=this.M(b.p[0],b.p[1]);const lift=b.h*S;
+  this.ballSh.setAttribute('cx',bx);this.ballSh.setAttribute('cy',by+R*.15);this.ballSh.setAttribute('rx',R*.5);this.ballSh.setAttribute('ry',R*.3);
+  const sc=1+b.h*.06;let rot=0;
+  if(b.flight){const A=this.M(b.flight.A[0],b.flight.A[1]),B=this.M(b.flight.B[0],b.flight.B[1]);rot=Math.atan2(B[1]-A[1],B[0]-A[0])*180/Math.PI;}
+  const held=!b.flight;const off=held?[R*.75,-R*.55]:[0,0];
+  this.ballEl.setAttribute('transform',`translate(${bx+off[0]},${by-lift+off[1]}) rotate(${rot}) scale(${sc})`);
+  this.ballSh.style.display=held?'none':'';
+  // pass/shot telestration (last completed or current flight)
+  let fl=null;const kf=this.play.ball;
+  for(let i=1;i<kf.length;i++){const a=kf[i-1],c=kf[i];if(a.on===c.on&&a.on)continue;if(a.t<t&&!c.noLine){fl={a,c};}}
+  if(fl&&this.show.routes){const A=fl.a.on?this.pos(fl.a.on,fl.a.t):[fl.a.x,fl.a.y];const tt=Math.min(t,fl.c.t);const u=(tt-fl.a.t)/((fl.c.t-fl.a.t)||1);
+    const B=fl.c.on?this.pos(fl.c.on,fl.c.t):[fl.c.x,fl.c.y];const P=[lerp(A[0],B[0],u),lerp(A[1],B[1],u)];
+    const a=this.M(A[0],A[1]),p=this.M(P[0],P[1]);this.flight.setAttribute('d',`M${a.join(',')} L${p.join(',')}`);this.flight.style.display='';}
+  else this.flight.style.display='none';
+  // notes
+  this.notes.forEach(o=>{const n=o.n;const on=this.show.labels&&t>=n.t0-1e-6&&t<(n.t1??1e9)-1e-6;o.g.setAttribute('opacity',on?1:0);if(!on)return;
+    let A=null;if(n.at){A=typeof n.at==='string'?this.M(...this.pos(n.at,t)):this.M(n.at[0],n.at[1]);}
+    let B;if(n.box)B=this.M(n.box[0],n.box[1]);else if(n.dx!==undefined&&A)B=[A[0]+n.dx*this.u,A[1]+n.dy*this.u];else B=A||[this.vb[0]+this.vb[2]/2,this.vb[1]+this.u*5];
+    {const [vx,vy,vw,vh]=this.vb,pd=this.u*.8;B=[Math.max(vx+o.w/2+pd,Math.min(vx+vw-o.w/2-pd,B[0])),Math.max(vy+o.h/2+pd,Math.min(vy+vh-o.h/2-pd,B[1]))];}
+    o.box.setAttribute('transform',`translate(${B[0]},${B[1]})`);
+    if(A&&n.lead!==false){const dx=A[0]-B[0],dy=A[1]-B[1];const L=Math.hypot(dx,dy)||1;
+      // start at box edge
+      const ex=Math.abs(dx)/(o.w/2),ey=Math.abs(dy)/(o.h/2);const k=1/Math.max(ex,ey);
+      const sx=B[0]+dx*Math.min(k,1),sy=B[1]+dy*Math.min(k,1);const end=n.circle===false?R*1.3:R*1.95;
+      if(L*(1-Math.min(k,1))>end*1.1){o.lead.style.display='';o.lead.setAttribute('x1',sx);o.lead.setAttribute('y1',sy);o.lead.setAttribute('x2',A[0]-dx/L*end);o.lead.setAttribute('y2',A[1]-dy/L*end);}else o.lead.style.display='none';}
+    else o.lead.style.display='none';
+    if(A&&n.circle!==false&&typeof n.at==='string'){o.circ.style.display='';o.circ.setAttribute('cx',A[0]);o.circ.setAttribute('cy',A[1]);}else o.circ.style.display='none';});
+  if(this.onTick)this.onTick(t);
+};
+Film.prototype.setFocus=function(id,set){this.focus=id;this.focusSet=set||null;this.render();if(this.onFocus)this.onFocus(id);};
+Film.prototype.seek=function(t){this.t=Math.max(0,Math.min(this.dur,t));this.render();};
+Film.prototype.beatIndex=function(t){const bs=this.play.beats;let k=0;bs.forEach((b,i)=>{if(t>=b.t-1e-6)k=i;});return k;};
+Film.prototype.playPause=function(on){this.playing=on===undefined?!this.playing:on;
+  if(this.playing){if(this.t>=this.dur-1e-3)this.t=0;this._last=performance.now();const step=now=>{if(!this.playing)return;
+      const dt=Math.min(.05,(now-this._last)/1000)*this.speed;this._last=now;const prev=this.t;let nt=prev+dt;
+      if(this.show.coach){const hit=this.play.beats.find(b=>b.t>prev+1e-6&&b.t<=nt&&b.t>0&&!b.noStop);if(hit){nt=hit.t;this.t=nt;this.render();this.playing=false;if(this.onState)this.onState();return;}}
+      if(nt>=this.dur){this.t=this.dur;this.render();this.playing=false;if(this.onState)this.onState();return;}
+      this.t=nt;this.render();this._raf=requestAnimationFrame(step);};
+    this._raf=requestAnimationFrame(step);}
+  else cancelAnimationFrame(this._raf);
+  if(this.onState)this.onState();};
+
+/* static diagram (concept cards): tokens at start, routes drawn complete */
+Film.diagram=function(host,def){const f=new Film(host);f.show.coach=false;f.load(def);f.t=0;
+  f.routes.forEach(r=>{r.live.style.display=r.halo.style.display='';const d=r.pts.map((k,i)=>(i?'L':'M')+f.M(k[1],k[2]).join(',')).join(' ');r.live.setAttribute('d',d);r.halo.setAttribute('d',d);r.ghost.style.display='none';});
+  f.render=function(){Film.prototype.render.call(f);f.routes.forEach(r=>{r.live.style.display=r.halo.style.display='';const d=r.pts.map((k,i)=>(i?'L':'M')+f.M(k[1],k[2]).join(',')).join(' ');r.live.setAttribute('d',d);r.halo.setAttribute('d',d);r.ghost.style.display='none';});};
+  f.render();return f;};
+Film.SURF=SURF;Film.at=at;
+return Film;
+})();
+
+</script>
+<script>
+/* NFL plays — field units are yards. x = distance from the left end line (goal lines at 10 and 110),
+   y = distance from the far sideline (0 .. 53.33). Offense attacks +x; the film shows +x as "up". */
+(function(){
+function P(id,team,pos,num,name,path,route,lp){return {id,team,pos,num,name,path,route,lp};}
+// helper: hold at (x,y) until time t, then follow the rest
+function H(x,y,t,rest){return [[0,x,y],[t,x,y]].concat(rest||[]);}
+const SEA={name:"Seattle",fill:"#0b2346",stroke:"#69be28",text:"#ffffff"};
+const NE ={name:"New England",fill:"#f4f4f2",stroke:"#c8102e",text:"#0b2346"};
+const PHI={name:"Philadelphia",fill:"#004c54",stroke:"#a5acaf",text:"#ffffff"};
+const NOTE="Player spots and timing are reconstructed from broadcast footage and published accounts, not from tracking data. Names appear only where sources confirm that player’s role; everyone else is labeled by position.";
+
+/* ===================== 1. MALCOLM BUTLER — SUPER BOWL XLIX ===================== */
+const LOS1=108.45, D1=109.8, SN=1.0;
+const olB=(id,pos,y)=>P(id,"O",pos,null,null,H(LOS1,y,SN,[[1.5,LOS1-.55,y],[3.8,LOS1-.7,y]]));
+const dlB=(id,pos,y,dy)=>P(id,"D",pos,null,null,H(D1,y,SN,[[1.45,D1-.6,y+(dy||0)],[3.8,D1-.75,y+(dy||0)]]));
+const butler={
+  id:"butler",surface:"nfl",orient:"up",dur:3.8,
+  camera:{x0:99.6,x1:119.6,y0:6,y1:49},
+  teams:{O:SEA,D:NE},
+  tag:"Super Bowl XLIX · Feb 1, 2015",title:"The Malcolm Butler interception",
+  sub:"Seattle, 1 yard from a title, throws a quick slant. An undrafted rookie gets there first.",
+  badge:"Stack “rub” slant vs. goal-line man",
+  context:{scorebug:[{abbr:"SEA",score:"24",fill:"#69be28"},{abbr:"NE",score:"28",fill:"#c8102e"}],
+    period:"4TH",clock:"0:26",situation:"2nd & GOAL at the NE 1 · Seattle has 1 timeout",
+    facts:[["Game","Super Bowl XLIX"],["Venue","University of Phoenix Stadium, Glendale, Ariz."],["Drive so far","31-yd catch by Lynch, 33-yd juggling catch by Kearse"],["Previous play","Lynch 4-yd run to the 1"],["Result","Interception — Patriots win 28–24"]]},
+  story:[
+    "Seattle got the ball at its own 20 with 2:02 left, down 28–24. Two big plays and a <b>Marshawn Lynch</b> run later, the Seahawks sat <b>one yard</b> from a second straight Super Bowl win.",
+    "They let the clock run down to <b>0:26</b>. With only one timeout left, a pass on 2nd down made clock sense: an incompletion stops the clock and still leaves time to run on 3rd and 4th. Pete Carroll also said afterward that New England’s goal-line personnel made this the down to throw.",
+    "Seattle sent in <b>three receivers</b>, so New England matched with <b>three cornerbacks</b>. One of them was <b>Malcolm Butler</b>, an undrafted rookie from West Alabama. Butler later summed up his read: “Goal line, three cornerbacks, you know they’re going to throw it.”"],
+  players:[
+    olB("LT","LT",23.0),olB("LG","LG",24.5),olB("C","C",26.0),olB("RG","RG",27.5),olB("RT","RT",29.0),
+    P("TE","O","TE",null,null,H(LOS1,21.4,SN,[[1.5,109.6,21.0],[2.2,110.7,21.4],[3.2,111.2,22.6]]),{c:"w",from:SN}),
+    P("QB","O","QB",3,"Wilson",H(104.0,26.0,1.35,[[1.6,103.6,26.1],[1.95,103.7,26.2],[2.4,104.0,26.4],[3.8,104.1,26.5]])),
+    P("RB","O","RB",24,"Lynch",H(104.0,24.1,SN,[[1.5,104.7,23.4],[2.2,105.8,21.6],[3.2,106.7,20.3]]),{c:"p",from:SN},"l"),
+    P("W1","O","WR",null,null,H(LOS1,9.5,SN,[[1.6,110.4,9.2],[2.4,112.3,9.9],[3.6,113.8,11.1]]),{c:"g",from:SN}),
+    P("K","O","WR",15,"Kearse",H(LOS1,40.0,SN,[[1.3,108.95,39.7],[1.6,109.05,39.5],[2.4,109.0,39.6],[3.2,108.8,39.9]]),{c:"c",from:SN},"r"),
+    P("L","O","WR",83,"Lockette",H(107.0,40.9,SN,[[1.3,107.5,40.4],[1.6,107.9,38.6],[2.0,109.2,37.7],[2.45,110.6,37.1],[2.7,110.7,36.7],[3.3,110.55,36.4]]),{c:"y",from:SN},"b"),
+    dlB("DE1","DE",22.2),dlB("DT1","DT",24.9),dlB("DT2","DT",27.2),dlB("DE2","DE",29.8,-.4),
+    P("LB1","D","LB",null,null,H(111.7,22.6,SN,[[1.6,111.9,21.3],[2.4,112.3,22.2],[3.4,112.6,23.6]])),
+    P("LB2","D","LB",null,null,H(111.7,27.4,SN,[[1.6,111.5,26.0],[2.4,111.2,24.8],[3.4,110.9,23.6]])),
+    P("LB3","D","LB",null,null,H(111.7,32.3,SN,[[1.6,111.6,31.9],[2.4,111.3,33.5],[3.4,110.9,34.2]])),
+    P("CB3","D","CB",null,null,H(110.4,9.2,SN,[[1.6,111.3,9.0],[2.4,112.6,9.6],[3.6,114.0,10.7]])),
+    P("BRN","D","CB",39,"Browner",H(109.75,40.15,SN,[[1.3,110.3,39.75],[1.6,110.35,39.5],[2.4,110.4,39.6],[3.2,110.2,39.9]]),null,"r"),
+    P("BUT","D","CB",21,"Butler",H(112.6,39.0,SN,[[1.3,112.35,38.9],[1.75,111.5,37.9],[2.2,110.65,36.7],[2.45,110.1,36.05],[2.8,109.65,35.5],[3.4,109.3,35.2]]),{c:"o",from:SN,dash:true}),
+    P("FS","D","S",null,null,H(114.2,26.2,SN,[[1.8,114.0,27.6],[2.6,113.2,30.6],[3.6,112.3,32.6]]))
+  ],
+  ball:[{t:0,on:"C"},{t:SN,on:"C"},{t:1.35,on:"QB",noLine:true},{t:1.95,on:"QB"},{t:2.45,on:"BUT",arc:1.1},{t:3.8,on:"BUT"}],
+  beats:[
+    {t:0,title:"Pre-snap: the stack",text:"Seattle lines up with three receivers. On the right, <b>Kearse</b> is on the line and <b>Lockette</b> stands right behind him — a <b>stack</b>. New England answers with press-and-off: <b>Browner</b> right on Kearse, <b>Butler</b> a few yards back."},
+    {t:1.0,title:"Snap",text:"Wilson takes the shotgun snap. This is a one-read throw: if Lockette’s slant is open, the ball comes out right away."},
+    {t:1.3,title:"The rub that never happens",text:"Kearse’s job is to run into Butler’s path (a <b>rub</b>), so Lockette can slip underneath untouched. But <b>Browner jams Kearse at the line</b>. Kearse never reaches Butler."},
+    {t:1.95,title:"The throw",text:"Lockette breaks inside and Wilson lets it go. From the pocket, Wilson can’t see Butler — he’s coming from behind the traffic. Butler is already sprinting to the spot."},
+    {t:2.45,title:"Intercepted",text:"Butler beats Lockette to the ball at the goal line and takes it away. New England keeps the ball and wins <b>28–24</b>."}],
+  notes:[
+    {t0:0,t1:1.0,at:"K",text:"STACK: Kearse in front,\nLockette behind",c:"y",box:[104.0,42.5]},
+    {t0:0,t1:1.0,at:"BRN",text:"Browner: press the front man",c:"o",box:[114.6,45]},
+    {t0:0,t1:1.0,at:"BUT",text:"Butler: off, reading",c:"o",box:[117.4,31]},
+    {t0:1.25,t1:1.95,at:"K",text:"Kearse’s job: rub Butler",c:"c",box:[104.0,42.5]},
+    {t0:1.25,t1:2.45,at:"BRN",text:"Browner jams him — no rub",c:"o",box:[114.6,45]},
+    {t0:1.6,t1:2.45,at:"L",text:"Quick slant",c:"y",box:[101.4,30.5]},
+    {t0:1.6,t1:2.45,at:"BUT",text:"Butler breaks on it",c:"o",box:[117.4,30]},
+    {t0:2.45,t1:9,at:"BUT",text:"INTERCEPTED at the goal line",c:"r",box:[117.2,24.5]}],
+  offense:{label:"Seattle offense",headline:"Shotgun, three receivers, one tight end, one running back (<b>11 personnel</b>). The call was a quick <b>stack slant</b>: the front receiver runs interference, the back receiver catches.",
+    facts:[["Personnel","11 — 1 RB, 1 TE, 3 WR"],["Formation","Shotgun, stack to the right"],["Concept","Stack “rub” + quick slant"],["Target","Ricardo Lockette"]],
+    items:[
+      {who:"K",c:"c",title:"Jermaine Kearse — front of the stack",text:"Runs into Butler’s path so Lockette has a clean lane. It only works if he actually gets there. Browner’s jam stopped him almost at the line."},
+      {who:"L",c:"y",title:"Ricardo Lockette — back of the stack",text:"Quick slant inside. Starting behind Kearse gives him a free release: nobody can press him at the line."},
+      {who:"QB",c:"w",title:"Russell Wilson — quarterback",text:"Catches the snap and throws on rhythm. On a quick slant the ball has to come out before the window fully opens, so he throws to where Lockette will be."},
+      {who:"RB",c:"p",title:"Marshawn Lynch — running back",text:"Not part of the read on this play; he releases toward the left side."},
+      {who:"W1",c:"g",title:"Left receiver",text:"Runs away from the action and keeps a cornerback busy on the other side."}]},
+  defense:{label:"New England defense",headline:"Goal-line front with <b>three cornerbacks</b> to match Seattle’s three receivers. <b>Man coverage</b>: every receiver has a defender. Against the stack, the two corners split the job — one presses the front man, one stays off and takes whoever comes free.",
+    facts:[["Front","Goal-line, 4 down linemen (approx.)"],["Coverage","Man-to-man"],["Stack technique","Press the front, play off the back"],["Key matchup","Butler vs. Lockette"]],
+    items:[
+      {who:"BRN",c:"o",title:"Brandon Browner — press corner",text:"Lines up nose-to-nose with Kearse and jams him at the line. That one block killed the rub before it started. It’s the unsung half of the play."},
+      {who:"BUT",c:"o",title:"Malcolm Butler — off corner",text:"Aligned a few yards deep behind Browner, so he could see both receivers. The Patriots had practiced against this exact look that week. He read the slant and broke on it before the ball arrived."},
+      {who:"CB3",c:"w",title:"Third cornerback",text:"Mans up the receiver on the left."},
+      {who:"LB2",c:"w",title:"Linebackers",text:"Pick up the tight end and the running back in man coverage; one drifts toward the slant area."},
+      {who:"FS",c:"w",title:"Safety",text:"Deep middle. Too far away to matter on a throw this quick — the play is decided by the corners."}]},
+  why:[
+    {title:"Browner won the first contact",text:"A rub only works if the front receiver gets in the way. Browner hit Kearse right at the line, so Butler had a free path to the ball.",focus:["BRN","K"]},
+    {title:"Butler knew it was coming",text:"New England had practiced against this formation that week. Butler recognized it and broke early instead of waiting to react — on a 1-yard throw, early is the only way to get there.",focus:["BUT"]},
+    {title:"Quick slants are thrown before the window is open",text:"Wilson had to let it go on rhythm, aiming where Lockette would be. He couldn’t see Butler coming from behind Browner and Kearse.",focus:["QB","L"]},
+    {title:"The trade-off Seattle took",text:"Throwing on 2nd down saved time and a timeout, which made sense on paper. The catch is that a pass can be intercepted and a run usually can’t — which is why this is still one of the most debated calls in NFL history.",focus:["QB"]}],
+  sources:[{t:"Wikipedia — Super Bowl XLIX",u:"https://en.wikipedia.org/wiki/Super_Bowl_XLIX"},{t:"Yahoo Sports — Browner’s role",u:"https://sports.yahoo.com/blogs/nbc-yahoo-sports/brandon-browner-played-colossal-role-in-malcolm-butler-s-interception-154116705-nfl.html"},{t:"Yahoo Sports — the story behind the interception",u:"https://sports.yahoo.com/the-unfathomable-story-behind-malcolm-butlers-super-bowl-saving-interception-123631027.html"}],
+  caveat:NOTE
+};
+
+/* ===================== 2. THE PHILLY SPECIAL — SUPER BOWL LII ===================== */
+const SN2=2.2;
+const olP=(id,pos,y,num,name)=>P(id,"O",pos,num||null,name||null,H(LOS1,y,SN2,[[2.7,LOS1+.1,y-.6],[4.2,LOS1+.12,y-.8]]));
+const philly={
+  id:"philly",surface:"nfl",orient:"up",dur:5.9,
+  camera:{x0:99.6,x1:119.6,y0:6,y1:49},
+  teams:{O:PHI,D:NE},
+  tag:"Super Bowl LII · Feb 4, 2018",title:"The Philly Special",
+  sub:"4th-and-goal trick play: direct snap, reverse, and the quarterback catches the touchdown.",
+  badge:"Direct snap + reverse + throwback to the QB",
+  context:{scorebug:[{abbr:"PHI",score:"15",fill:"#004c54"},{abbr:"NE",score:"12",fill:"#c8102e"}],
+    period:"2ND",clock:"0:38",situation:"4th & GOAL at the NE 1 · after an Eagles timeout",
+    facts:[["Game","Super Bowl LII"],["Venue","U.S. Bank Stadium, Minneapolis"],["The call","“Philly Philly” — Foles suggested it, Pederson said yes"],["Origin","Adapted from a 2016 Chicago Bears play"],["Result","Touchdown — 22–12 after the extra point"]]},
+  story:[
+    "Late in the first half the Eagles led <b>15–12</b> and faced <b>4th-and-goal from the 1</b>. A field goal was the safe play. During the timeout, quarterback <b>Nick Foles</b> asked head coach <b>Doug Pederson</b> about a trick play; Pederson agreed and went for it.",
+    "The trick: make the quarterback look like he’s out of the play, then throw to him. Foles became the <b>first quarterback to catch a touchdown pass in a Super Bowl</b>, and the Eagles went on to win <b>41–33</b> for their first Super Bowl title."],
+  players:[
+    olP("LT","LT",23.0),olP("LG","LG",24.5),olP("C","C",26.0,62,"Kelce"),olP("RG","RG",27.5),olP("RT","RT",29.0,65,"Johnson"),
+    P("TE","O","TE",null,null,H(LOS1,21.4,SN2,[[2.8,109.6,21.0],[3.6,110.8,20.8],[5.0,111.6,21.5]])),
+    P("WRL","O","WR",82,"T. Smith",H(LOS1,18.4,SN2,[[3.0,110.5,17.3],[4.0,112.8,15.8],[5.9,114.6,14.4]]),{c:"p",from:SN2}),
+    P("B","O","TE",88,"Burton",H(106.9,18.7,SN2,[[2.6,105.9,19.9],[3.0,105.0,21.6],[3.4,104.4,23.3],[3.8,104.1,25.6],[4.2,104.2,28.0],[4.45,104.4,29.3],[4.9,104.7,30.2],[5.9,104.9,30.6]]),{c:"c",from:SN2}),
+    P("J","O","WR",17,"Jeffery",H(LOS1,45.0,SN2,[[3.0,110.6,45.6],[4.0,113.2,46.6],[5.0,115.0,47.2],[5.9,115.7,47.5]]),{c:"g",from:SN2}),
+    P("RB","O","RB",30,"Clement",H(104.5,28.1,1.3,[[1.9,104.3,26.2],[SN2,104.3,26.2],[2.55,104.2,25.6],[2.95,104.4,24.0],[3.3,104.6,22.6],[3.7,105.4,21.2],[4.6,106.7,20.0],[5.9,107.0,19.7]]),{c:"w",from:SN2},"r"),
+    P("QB","O","QB",9,"Foles",[[0,104.5,26.0],[.3,104.5,26.0],[1.7,107.35,29.9],[SN2,107.4,30.0],[2.75,107.6,30.2],[3.3,108.9,32.3],[3.9,110.3,35.5],[4.5,111.3,38.8],[5.1,111.8,41.5],[5.9,111.7,42.0]],{c:"y",from:SN2},"l"),
+    P("DL1","D","DT",null,null,H(D1,22.8,SN2,[[2.7,109.6,22.3],[4.2,109.55,21.9]])),
+    P("DL2","D","DT",null,null,H(D1,25.3,SN2,[[2.7,109.6,24.8],[4.2,109.55,24.5]])),
+    P("DL3","D","DT",null,null,H(D1,27.4,SN2,[[2.7,109.6,26.9],[4.2,109.55,26.6]])),
+    P("DE","D","DE",null,null,H(D1,30.4,SN2,[[2.6,109.0,30.6],[3.2,107.4,29.2],[3.9,106.0,27.6],[4.5,105.5,28.3],[5.2,105.6,28.9]]),{c:"o",from:SN2,dash:true}),
+    P("LB1","D","LB",null,null,H(111.4,20.4,SN2,[[2.8,110.9,19.6],[3.4,110.2,19.2],[4.2,110.0,21.0]])),
+    P("LB2","D","LB",null,null,H(111.4,25.0,SN2,[[2.7,110.8,23.6],[3.3,110.2,22.2],[4.0,110.3,24.8],[4.8,110.6,27.5]])),
+    P("LB3","D","LB",null,null,H(111.4,31.2,SN2,[[2.7,110.8,29.8],[3.3,110.4,27.4],[4.0,110.6,29.0],[4.8,110.9,32.6],[5.4,111.1,35.5]]),{c:"o",from:SN2,dash:true}),
+    P("CB1","D","CB",null,null,H(110.1,17.6,SN2,[[3.0,111.2,17.1],[4.0,113.0,15.8],[5.9,114.5,14.8]])),
+    P("CB2","D","CB",null,null,H(110.1,45.5,SN2,[[3.0,111.4,45.5],[4.0,113.6,46.2],[5.9,116.0,47.0]])),
+    P("S1","D","S",null,null,H(113.0,23.5,SN2,[[3.0,112.4,22.0],[3.6,112.1,21.5],[4.4,112.1,24.0],[5.4,112.3,30.0]])),
+    P("S2","D","S",null,null,H(113.0,33.2,SN2,[[3.0,112.6,30.6],[3.6,112.4,29.5],[4.4,112.5,32.5],[5.2,112.4,37.2],[5.9,112.2,38.8]]),{c:"o",from:3.6,dash:true})
+  ],
+  ball:[{t:0,on:"C"},{t:SN2,on:"C"},{t:2.55,on:"RB",noLine:true},{t:3.25,on:"RB"},{t:3.4,on:"B",arc:.3},{t:4.45,on:"B"},{t:5.1,on:"QB",arc:3.2},{t:5.9,on:"QB"}],
+  beats:[
+    {t:0,title:"Pre-snap: Foles walks away",text:"Foles starts in the shotgun, then walks up behind right tackle <b>Lane Johnson</b>, talking like he’s adjusting the blocking. To the defense he now looks like a spectator."},
+    {t:2.2,title:"Direct snap to the running back",text:"Center <b>Jason Kelce</b> snaps straight to running back <b>Corey Clement</b>. Clement is the quarterback for the next second."},
+    {t:2.95,title:"Everything goes left",text:"Clement runs left. The Patriots’ linemen and linebackers flow with him — it looks like a run or a sprint-out."},
+    {t:3.3,title:"The reverse",text:"Clement flips the ball to tight end <b>Trey Burton</b>, who started on the left and is now running right. The defense has to stop and turn around."},
+    {t:4.45,title:"The throw",text:"Burton throws to the right side of the end zone. Foles slipped out after the snap and nobody went with him."},
+    {t:5.1,title:"Touchdown, quarterback",text:"Foles catches it alone. With the extra point, Philadelphia leads <b>22–12</b>."}],
+  notes:[
+    {t0:0,t1:SN2,at:"QB",text:"Foles walks up behind RT",c:"y",box:[101.6,38.5]},
+    {t0:1.3,t1:SN2,at:"RB",text:"Snap goes straight here",c:"c",box:[101.2,16.0]},
+    {t0:2.4,t1:3.3,at:"LB3",text:"Defense flows left",c:"o",box:[116.8,38.0]},
+    {t0:3.3,t1:4.45,at:"B",text:"Reverse: Burton has it",c:"c",box:[101.2,16.0]},
+    {t0:2.75,t1:4.0,at:"DE",text:"Edge rusher runs right past Foles",c:"o",box:[101.6,39.5]},
+    {t0:4.45,t1:9,at:"QB",text:"NOBODY ON FOLES",c:"r",box:[117.6,41.0]}],
+  offense:{label:"Philadelphia offense",headline:"A designed trick play: <b>direct snap</b> to the running back, a <b>reverse</b> to the tight end, and a pass back to the <b>quarterback</b>. Three Eagles touch the ball before Foles does.",
+    facts:[["Formation","Shotgun look, then the QB shifts out"],["Concept","Direct snap + reverse + throwback"],["Ball path","Kelce → Clement → Burton → Foles"],["Decoys","Every receiver clears space"]],
+    items:[
+      {who:"QB",c:"y",title:"Nick Foles — quarterback, then receiver",text:"Walks up toward the line before the snap as if checking the protection, then slips out to the right side of the end zone."},
+      {who:"RB",c:"w",title:"Corey Clement — running back",text:"Takes the direct snap and runs left to pull the defense that way."},
+      {who:"B",c:"c",title:"Trey Burton — tight end",text:"Starts on the left, comes back on the reverse, takes the flip and throws on the move."},
+      {who:"C",c:"w",title:"Jason Kelce — center",text:"Snaps directly to Clement instead of the quarterback."},
+      {who:"J",c:"g",title:"Alshon Jeffery — receiver",text:"Takes his cornerback deep and wide. His job is to empty the space Foles will run into."},
+      {who:"WRL",c:"p",title:"Torrey Smith — receiver",text:"Burton lines up right behind him. At the snap he clears the left side and keeps another cornerback away."}]},
+  defense:{label:"New England defense",headline:"New England played it like a <b>goal-line run</b>: linemen and linebackers chased the ball, and the corners covered the receivers <b>man-to-man</b>. In man coverage the quarterback is nobody’s assignment — so once Foles left the backfield, nobody picked him up.",
+    facts:[["Front","Goal-line, run-first (approx.)"],["Coverage","Man on the receivers"],["Who had Foles?","No one — QBs aren’t a coverage assignment"],["Fatal moment","The flow left, then the reverse"]],
+    items:[
+      {who:"DE",c:"o",title:"Edge rusher on Foles’s side",text:"Lined up right where Foles ended up. He rushed past him toward the ball — correct against a normal play, wrong against this one."},
+      {who:"LB3",c:"o",title:"Linebacker on the right",text:"Flowed left with Clement, then had to turn around for the reverse. By then Foles was gone."},
+      {who:"S2",c:"o",title:"Safety",text:"Also drifted toward the run, then tried to recover. Too late."},
+      {who:"CB2",c:"w",title:"Cornerbacks",text:"Stayed with their receivers — doing their jobs, which is exactly what emptied the right side."}]},
+  why:[
+    {title:"Foles looked out of the play",text:"Walking up to the line and talking made him look like he was fixing the blocking. Defenders stop watching a player who looks like he’s not involved.",focus:["QB"]},
+    {title:"Two directions in about a second",text:"The run left pulled the defense one way; the reverse made it stop and turn. Every defender who bit on the first fake was a step late on the second.",focus:["RB","B","LB3"]},
+    {title:"Man coverage leaves the QB free",text:"Every receiver had a defender, but the quarterback is never anyone’s man. The play turned the one unguarded player into the target.",focus:["QB","DE"]},
+    {title:"Burton could throw",text:"A trick pass needs a non-quarterback who can throw on the run. Burton put it where only Foles could catch it.",focus:["B"]}],
+  sources:[{t:"Wikipedia — Philly Special",u:"https://en.wikipedia.org/wiki/Philly_Special"},{t:"NBC Sports Philadelphia — the film and its origins",u:"https://www.nbcsportsphiladelphia.com/nfl/looking-at-film-of-the-philly-special-and-its-origins/341755"}],
+  caveat:NOTE
+};
+
+window.PLAYS=[butler,philly];
+
+/* ===================== coverage + route concept diagrams ===================== */
+const LOS=40,OX=39.5,DX=40.6,MID=80/3;
+const O={name:"Offense",fill:"#0b2346",stroke:"#7ef7ff",text:"#fff"},D={name:"Defense",fill:"#f4f4f2",stroke:"#c8102e",text:"#111"};
+function offense(rb){const o=[["LT",23.7],["LG",25.2],["C",MID],["RG",28.2],["RT",29.7]].map(([p,y])=>P("o"+p,"O",p,null,null,[[0,OX,y]]));
+  o.push(P("oQB","O","QB",null,null,[[0,35.0,MID]]));
+  o.push(P("oRB","O","RB",null,null,[[0,35.0,MID+1.6]],null));
+  o.push(P("oX","O","WR",null,null,[[0,OX,5.0]]),P("oS1","O","WR",null,null,[[0,38.6,12.5]]),P("oS2","O","WR",null,null,[[0,38.6,40.8]]),P("oZ","O","WR",null,null,[[0,38.6,48.3]]));
+  return o;}
+const dl=()=>[["DE",22.2],["DT",25.4],["DT",28.0],["DE",31.2]].map(([p,y],i)=>P("d"+i,"D",p,null,null,[[0,DX,y]]));
+const cam={x0:33.2,x1:63.5,y0:0,y1:160/3};
+const C=(title,text,def,zones,extra)=>Object.assign({title,text,surface:"nfl",orient:"up",dur:1,camera:cam,tokScale:2.0,zoneSize:2.8,teams:{O,D},players:offense().concat(dl(),def),ball:[{t:0,on:"oC"}],zones,notes:[],beats:[{t:0,title:"",text:""}]},extra||{});
+const man=(id,pos,x,y,tx,ty)=>{const rx=tx===40.4?35.0:39.5,ry=ty;const dx=rx-x,dy=ry-y,L=Math.hypot(dx,dy),k=(L-1.5)/L;return P(id,"D",pos,null,null,[[0,x,y],[1,x+dx*k,y+dy*k]],{c:"o",dash:true,from:0});};
+const W=160/3;
+window.CONCEPTS=[
+  C("Cover 0 — all-out pressure","Zero deep safeties. Six rushers, everyone else in pure man coverage with no help over the top. Tell: nobody is deeper than about 8 yards before the snap. Big risk, big reward.",
+    [man("c1","CB",41.6,5.0,44,5.0),man("c2","CB",41.6,48.3,44,48.3),man("n","NB",42.0,12.8,44.5,12.5),man("s1","S",45.5,40.6,44.2,40.8),man("s2","S",45.5,24.0,40.4,MID+1.6),
+     P("b1","D","LB",null,null,[[0,44.0,24.6],[1,36.6,25.6]],{c:"r",from:0}),P("b2","D","LB",null,null,[[0,44.0,30.2],[1,36.6,27.8]],{c:"r",from:0})],[]),
+  C("Cover 1 — man with one deep safety","Man coverage underneath with a single free safety deep in the middle. A <b>robber</b> often sits in the short middle. Tell: one safety deep, the other walked down.",
+    [man("c1","CB",41.6,5.0,44,5.0),man("c2","CB",41.6,48.3,44,48.3),man("n","NB",42.0,12.8,44.5,12.5),man("ss","SS",45.0,40.6,44.4,40.8),man("lb1","LB",44.5,28.6,41.5,MID+2.4),
+     P("rob","D","LB",null,null,[[0,44.5,24.0]]),P("fs","D","FS",null,null,[[0,54.5,MID]])],
+    [{pts:[[50,1],[62.5,1],[62.5,W-1],[50,W-1]],color:"c",label:"FREE SAFETY — DEEP MIDDLE"},{pts:[[43,20],[48,20],[48,33],[43,33]],color:"y",label:"ROBBER"}]),
+  C("Cover 2 — two deep halves","Two safeties split the deep field in half; five defenders cover short zones. The corners sit low and squeeze the flats. Weak spots: the deep middle seam and the sideline hole between corner and safety.",
+    [P("c1","D","CB",null,null,[[0,41.8,5.8]]),P("c2","D","CB",null,null,[[0,41.8,47.5]]),P("n","D","NB",null,null,[[0,44.5,13.5]]),P("lb1","D","LB",null,null,[[0,44.5,MID]]),P("lb2","D","LB",null,null,[[0,44.5,39.8]]),
+     P("s1","D","S",null,null,[[0,53.5,13.5]]),P("s2","D","S",null,null,[[0,53.5,39.8]])],
+    [{pts:[[51,1],[62.5,1],[62.5,MID-.3],[51,MID-.3]],color:"c",label:"DEEP ½"},{pts:[[51,MID+.3],[62.5,MID+.3],[62.5,W-1],[51,W-1]],color:"c",label:"DEEP ½"},
+     {pts:[[40.8,1],[49,1],[49,10],[40.8,10]],color:"y",label:"FLAT"},{pts:[[40.8,W-10],[49,W-10],[49,W-1],[40.8,W-1]],color:"y",label:"FLAT"},
+     {pts:[[42.5,10.5],[49.5,10.5],[49.5,20.5],[42.5,20.5]],color:"g",label:"HOOK"},{pts:[[42.5,21],[49.5,21],[49.5,32.3],[42.5,32.3]],color:"g",label:"MIDDLE"},{pts:[[42.5,32.8],[49.5,32.8],[49.5,42.8],[42.5,42.8]],color:"g",label:"HOOK"}]),
+  C("Cover 3 — three deep thirds","Two corners and a free safety each take a deep third; four defenders cover the short zones. The most common zone in football. Weak spots: the flats and the seams between the underneath zones.",
+    [P("c1","D","CB",null,null,[[0,46.0,5.8]]),P("c2","D","CB",null,null,[[0,46.0,47.5]]),P("fs","D","FS",null,null,[[0,54.5,MID]]),P("ss","D","SS",null,null,[[0,45.5,39.8]]),
+     P("n","D","NB",null,null,[[0,44.5,13.0]]),P("lb1","D","LB",null,null,[[0,44.5,23.5]]),P("lb2","D","LB",null,null,[[0,44.5,30.0]])],
+    [{pts:[[51,1],[62.5,1],[62.5,17.5],[51,17.5]],color:"c",label:"DEEP ⅓"},{pts:[[51,18],[62.5,18],[62.5,35.3],[51,35.3]],color:"c",label:"DEEP ⅓"},{pts:[[51,35.8],[62.5,35.8],[62.5,W-1],[51,W-1]],color:"c",label:"DEEP ⅓"},
+     {pts:[[40.8,1],[49.5,1],[49.5,13],[40.8,13]],color:"y",label:"CURL/FLAT"},{pts:[[42.5,13.5],[49.5,13.5],[49.5,26.4],[42.5,26.4]],color:"g",label:"HOOK"},
+     {pts:[[42.5,26.9],[49.5,26.9],[49.5,39.8],[42.5,39.8]],color:"g",label:"HOOK"},{pts:[[40.8,40.3],[49.5,40.3],[49.5,W-1],[40.8,W-1]],color:"y",label:"CURL/FLAT"}]),
+  C("Cover 4 — quarters","Four defenders each take a deep quarter; three cover the short zones. Safeties read the inside receiver and can jump short routes, so quarters stops deep shots and the run. Weak spot: the flats and quick outs.",
+    [P("c1","D","CB",null,null,[[0,47.0,5.8]]),P("c2","D","CB",null,null,[[0,47.0,47.5]]),P("s1","D","S",null,null,[[0,51.0,17.5]]),P("s2","D","S",null,null,[[0,51.0,35.8]]),
+     P("n","D","NB",null,null,[[0,44.5,11.5]]),P("lb1","D","LB",null,null,[[0,44.5,MID]]),P("lb2","D","LB",null,null,[[0,44.5,41.8]])],
+    [{pts:[[52,1],[62.5,1],[62.5,13.3],[52,13.3]],color:"c",label:"¼"},{pts:[[52,13.6],[62.5,13.6],[62.5,26.4],[52,26.4]],color:"c",label:"¼"},{pts:[[52,26.9],[62.5,26.9],[62.5,39.7],[52,39.7]],color:"c",label:"¼"},{pts:[[52,40],[62.5,40],[62.5,W-1],[52,W-1]],color:"c",label:"¼"},
+     {pts:[[40.8,1],[49.5,1],[49.5,17.5],[40.8,17.5]],color:"y",label:"FLAT/HOOK"},{pts:[[42.5,18],[49.5,18],[49.5,35.3],[42.5,35.3]],color:"g",label:"MIDDLE"},{pts:[[40.8,35.8],[49.5,35.8],[49.5,W-1],[40.8,W-1]],color:"y",label:"FLAT/HOOK"}])
+];
+// route glossary: two receivers, many routes (team numbering systems differ, so routes are named, not numbered)
+(function(){const ps=[];const L=(id,y,pts,c,lab,lx,ly)=>{ps.push(P(id,"O","WR",null,null,[[0,OX,y]].concat(pts.map((p,i)=>[i+1,p[0],p[1]])),{c,from:0}));notes.push({t0:0,text:lab,c,at:[lx,ly],box:[lx,ly],lead:false,circle:false});};
+  const notes=[];
+  L("r1",10,[[45,10],[44.2,10.3]],"y","HITCH",43.3,5.3);
+  L("r2",10,[[41.4,10],[45.8,15.5]],"c","SLANT",46.8,17.6);
+  L("r3",10,[[45.5,10],[45.5,3.5]],"o","OUT",46.6,2.6);
+  L("r4",10,[[50,10],[50,21]],"g","DIG / IN",51.8,23.8);
+  L("r5",10,[[51,10],[49.8,11.2]],"p","CURL",52.8,8.2);
+  L("r6",43.3,[[55,43.3],[53.2,47.0]],"y","COMEBACK",51.6,50.2);
+  L("r7",43.3,[[50,43.3],[56.5,49.5]],"o","CORNER",58.4,50.3);
+  L("r8",43.3,[[50,43.3],[58.5,35]],"c","POST",59.8,35.5);
+  L("r9",43.3,[[62,44.0]],"g","GO / FADE",61.6,48.7);
+  window.CONCEPTS.push({title:"Route glossary",text:"Short to deep: hitch, slant, out, curl, dig on the left; comeback, corner, post and go on the right. Teams number their route trees differently, so the routes are named here, not numbered.",
+    surface:"nfl",orient:"up",dur:1,camera:cam,tokScale:1.6,noteSize:2.4,teams:{O,D},players:[P("oC","O","C",null,null,[[0,OX,MID]])].concat(ps),ball:[{t:0,on:"oC"}],zones:[],notes,beats:[{t:0,title:"",text:""}]});})();
+})();
+
+</script>
+<script>
+/* FilmRoom page controller */
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PLAYS=window.PLAYS;let film,cur;
+
+function swatch(c){const m={y:'#eaff3d',o:'#ffb72b',c:'#7ef7ff',w:'#ffffff',r:'#ff4d6d',g:'#5dff7a',p:'#ff7ad9'};return m[c]||c;}
+
+function buildPicker(){
+  const box=$('#picker');box.innerHTML='';
+  PLAYS.forEach((p,i)=>{const b=document.createElement('button');b.className='pick';b.dataset.i=i;
+    b.innerHTML=`<span class="pk-tag">${esc(p.tag)}</span><span class="pk-t">${esc(p.title)}</span><span class="pk-s">${esc(p.sub)}</span>`;
+    b.onclick=()=>select(i,true);box.appendChild(b);});
+}
+
+function select(i,scroll){
+  cur=PLAYS[i];document.querySelectorAll('.pick').forEach(b=>b.classList.toggle('on',+b.dataset.i===i));
+  film.playPause(false);film.focus=null;film.load(cur);
+  $('#badge').textContent=cur.badge;
+  // scorebug
+  const sb=cur.context.scorebug.map(s=>`<div class="sb-team" style="--tc:${s.fill}"><span class="sb-ab">${esc(s.abbr)}</span><span class="sb-sc">${esc(s.score)}</span></div>`).join('');
+  $('#scorebug').innerHTML=`<div class="sb-row">${sb}<div class="sb-meta"><b>${esc(cur.context.period)}</b><span>${esc(cur.context.clock)}</span></div></div><div class="sb-sit">${esc(cur.context.situation)}</div>`;
+  $('#ctx-list').innerHTML=cur.context.facts.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  $('#story').innerHTML=cur.story.map(p=>`<p>${p}</p>`).join('');
+  // beats
+  $('#beats').innerHTML=cur.beats.map((b,k)=>`<button class="beat" data-k="${k}"><span class="bt-n">${String(k+1).padStart(2,'0')}</span><span class="bt-b"><b>${esc(b.title)}</b><span>${b.text}</span></span><span class="bt-t">${b.t.toFixed(2)}s</span></button>`).join('');
+  document.querySelectorAll('.beat').forEach(el=>el.onclick=()=>{film.playPause(false);film.seek(cur.beats[+el.dataset.k].t);});
+  // ticks on scrubber
+  $('#ticks').innerHTML=cur.beats.map(b=>`<i style="left:${b.t/cur.dur*100}%"></i>`).join('');
+  $('#scrub').max=cur.dur;
+  // breakdowns
+  const side=(o,el)=>{$(el).innerHTML=`<p class="bd-head">${o.headline}</p>`+
+    `<div class="facts">${o.facts.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`+
+    o.items.map(it=>`<div class="item" ${it.who?`data-focus="${it.who}"`:''}><span class="sw" style="background:${swatch(it.c||'w')}"></span><div><b>${esc(it.title)}</b><p>${it.text}</p></div></div>`).join('');};
+  side(cur.offense,'#off');side(cur.defense,'#def');
+  $('#off-h').textContent=cur.offense.label;$('#def-h').textContent=cur.defense.label;
+  $('#why').innerHTML=cur.why.map((w,k)=>`<div class="why" ${w.focus?`data-focus="${w.focus.join(',')}"`:''}><span class="wn">${k+1}</span><div><b>${esc(w.title)}</b><p>${w.text}</p></div></div>`).join('');
+  $('#sources').innerHTML='Sources: '+cur.sources.map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${esc(s.t)}</a>`).join(' · ')+`<br><span>${esc(cur.caveat)}</span>`;
+  document.querySelectorAll('[data-focus]').forEach(el=>{el.onclick=()=>{const ids=el.dataset.focus.split(',');
+    const same=film.focus===ids[0]&&el.classList.contains('foc');document.querySelectorAll('[data-focus]').forEach(x=>x.classList.remove('foc'));
+    if(same){film.setFocus(null);}else{el.classList.add('foc');film.setFocus(ids[0],ids);$('#film-wrap').scrollIntoView({behavior:'smooth',block:'center'});}};});
+  state();tick(0);
+  if(scroll)$('#film-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function state(){$('#pp').textContent=film.playing?'❚❚ Pause':(film.t>=film.dur-1e-3?'↺ Replay':'▶ Play');}
+function tick(t){$('#scrub').value=t;$('#tread').textContent=t.toFixed(2)+'s / '+cur.dur.toFixed(2)+'s';
+  const k=film.beatIndex(t);const b=cur.beats[k];
+  $('#cap-n').textContent=String(k+1).padStart(2,'0')+' / '+String(cur.beats.length).padStart(2,'0');
+  $('#cap-t').textContent=b.title;$('#cap-x').innerHTML=b.text;
+  document.querySelectorAll('.beat').forEach(el=>el.classList.toggle('on',+el.dataset.k===k));
+  $('#prog').style.width=(t/cur.dur*100)+'%';}
+
+function init(){
+  film=new Film($('#film'));film.onTick=tick;film.onState=state;
+  buildPicker();
+  $('#pp').onclick=()=>film.playPause();
+  $('#rs').onclick=()=>{film.playPause(false);film.seek(0);};
+  $('#pb').onclick=()=>{film.playPause(false);const k=film.beatIndex(film.t-0.001);const tgt=(film.t-cur.beats[k].t>.05)?cur.beats[k].t:cur.beats[Math.max(0,k-1)].t;film.seek(tgt);};
+  $('#nb').onclick=()=>{film.playPause(false);const n=cur.beats.find(b=>b.t>film.t+1e-3);film.seek(n?n.t:film.dur);};
+  $('#scrub').oninput=e=>{film.playPause(false);film.seek(+e.target.value);};
+  document.querySelectorAll('.spd').forEach(b=>b.onclick=()=>{film.speed=+b.dataset.s;document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('on',x===b));});
+  [['coach','#t-coach'],['routes','#t-routes'],['labels','#t-labels'],['names','#t-names']].forEach(([k,s])=>{const el=$(s);el.checked=film.show[k];el.onchange=()=>{film.show[k]=el.checked;film.render();};});
+  $('#t-all').onchange=e=>{film.show.allNames=e.target.checked;film.render();};
+  document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&e.target.type!=='range'&&e.target.type!=='checkbox')return;
+    if(e.code==='Space'){e.preventDefault();film.playPause();}if(e.code==='ArrowRight'){e.preventDefault();$('#nb').click();}if(e.code==='ArrowLeft'){e.preventDefault();$('#pb').click();}});
+  film.onFocus=id=>{if(!id)document.querySelectorAll('[data-focus]').forEach(x=>x.classList.remove('foc'));};
+  select(0,false);
+  // concept diagrams
+  (window.CONCEPTS||[]).forEach(c=>{const card=document.createElement('div');card.className='concept';
+    card.innerHTML=`<div class="c-fig"></div><b>${esc(c.title)}</b><p>${c.text}</p>`;$('#concepts').appendChild(card);
+    const f=Film.diagram(card.querySelector('.c-fig'),c);f.show.names=true;f.render();});
+}
+document.addEventListener('DOMContentLoaded',init);
+})();
+
+</script>
+<script src="../snow.js"></script>
+<script src="../a11y.js"></script>
+<script src="../spotifyplayer.js"></script>
+</body>
+</html>

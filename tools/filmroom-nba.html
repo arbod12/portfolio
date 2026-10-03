@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FilmRoom NBA — Ariel Bodik</title>
+<meta name="description" content="Real NBA plays animated on a to-scale court, with context, actions, defensive coverages and why the shot went in.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;--bg-2:#101019;--surface:#15151f;--surface-2:#1c1c2a;
+    --line:#26263a;--line-bright:#34344e;--text:#f4f4f8;--text-dim:#a0a0b8;--text-faint:#6a6a85;
+    --lime:#c6ff3a;--violet:#7c5cff;--cyan:#3affe0;--pink:#ff5c8a;--warn:#ffcf3a;--accent:#c6ff3a;
+    --tele:#eaff3d;--orng:#ffb72b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+  a{color:inherit;text-decoration:none}
+  nav{position:sticky;top:0;z-index:50;background:rgba(10,10,15,.8);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1280px;margin:0 auto;gap:12px;flex-wrap:wrap}
+  .brand{font-family:'Clash Display';font-weight:600;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;background:var(--lime);border-radius:50%}
+  .navr{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .back,.sib{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim)}
+  .sib.cur{color:var(--pink);font-weight:700}
+  .sib:hover{color:var(--pink)}
+  .head{padding:44px 0 18px}
+  .kick{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.12em;text-transform:uppercase;display:inline-flex;gap:8px;padding:6px 13px;margin-bottom:18px}
+  h1{font-family:'Clash Display';font-weight:600;font-size:clamp(32px,5vw,54px);letter-spacing:-.02em;line-height:1.05}
+  .head p{margin-top:14px;color:var(--text-dim);font-size:16px;max-width:860px;line-height:1.65}
+  h2.sec{font-family:'Clash Display';font-weight:600;font-size:22px;margin:6px 0 12px}
+  .panel{background:var(--surface);border:1px solid var(--line);padding:22px;margin-bottom:22px}
+  .panel h3{font-family:'Clash Display';font-weight:600;font-size:18px;margin-bottom:10px}
+
+  /* play picker */
+  #picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:8px 0 24px}
+  button.pick{display:flex;flex-direction:column;gap:5px;text-align:left;padding:14px 16px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+  .pick .pk-tag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+  .pick .pk-t{font-family:'Clash Display';font-weight:600;font-size:18px;line-height:1.15}
+  .pick .pk-s{font-size:12px;opacity:.8;line-height:1.45}
+  button.pick.on{background:#15130f !important;color:#fff !important;box-shadow:4px 4px 0 var(--pink) !important}
+
+  /* layout */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:22px;align-items:start;margin-top:26px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+  /* film monitor */
+  .monitor{background:#0d0f0c;border:2px solid #1a1a1a;box-shadow:6px 6px 0 #1a1a1a;position:relative}
+  .mon-top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#15130f;color:#cfcabd;font-family:'JetBrains Mono';font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .mon-top .rec{display:flex;gap:7px;align-items:center}.mon-top .rec i{width:8px;height:8px;border-radius:50%;background:#ff3b3b;display:inline-block;animation:bl 1.4s infinite}
+  @keyframes bl{50%{opacity:.25}}
+  #film{position:relative;width:100%;margin:0 auto;overflow:hidden;cursor:pointer;background:#0d0f0c}
+  #film svg{width:100%;height:100%;display:block}
+  #badge{background:var(--tele);color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:900;font-size:clamp(14px,1.8vw,21px);padding:7px 14px;border-bottom:2px solid #111}
+  .cap{display:grid;grid-template-columns:auto 1fr;gap:0;background:#15130f;color:#f4f1ea;border-top:2px solid #1a1a1a;min-height:86px}
+  .cap .cn{background:var(--pink);color:#fff;font-family:'JetBrains Mono';font-weight:800;font-size:12px;padding:12px 12px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:84px;text-align:center}
+  .cap .cn small{font-size:9.5px;letter-spacing:.12em;opacity:.85}
+  .cap .cb{padding:11px 16px}
+  .cap .cb #cap-t{font-family:'Clash Display';font-weight:600;font-size:18px;display:block;margin-bottom:3px;color:var(--tele)}
+  .cap .cb #cap-x b{color:#fff}
+  .cap .cb span{font-size:14px;line-height:1.55;color:#e9e5da;font-family:'Familjen Grotesk',sans-serif}
+  .ctrl{background:#fff;border-top:2px solid #1a1a1a;padding:12px 12px 10px}
+  .scrubwrap{position:relative;height:26px;margin:0 2px 10px}
+  .track{position:absolute;left:0;right:0;top:10px;height:6px;background:#e6e1d5;border:1.5px solid #1a1a1a}
+  #prog{position:absolute;left:0;top:0;bottom:0;background:var(--pink)}
+  #ticks i{position:absolute;top:-6px;width:3px;height:16px;background:#1a1a1a;transform:translateX(-1px)}
+  #scrub{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;height:26px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .row button{padding:7px 12px;font-size:12.5px;cursor:pointer}
+  .row .sp{flex:1}
+  #tread{font-family:'JetBrains Mono';font-size:12px;color:#4a463e;min-width:110px;text-align:right}
+  .tg{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;padding:4px 8px;border:2px solid #1a1a1a;background:#faf8f3;user-select:none}
+  .tg input{width:14px;height:14px;accent-color:#ff2d77}
+  .row2{margin-top:9px;padding-top:9px;border-top:1.5px dashed #c9c3b5}
+  .hint{font-family:'JetBrains Mono';font-size:11px;color:#7a756a;margin-top:8px}
+
+  /* context */
+  #scorebug{background:#15130f;color:#fff;border:2px solid #1a1a1a;margin-bottom:14px}
+  .sb-row{display:flex;align-items:stretch}
+  .sb-team{flex:1;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-left:8px solid var(--tc)}
+  .sb-ab{font-family:'Clash Display';font-weight:600;font-size:18px}
+  .sb-sc{font-family:'JetBrains Mono';font-weight:800;font-size:24px}
+  .sb-meta{background:#2a2720;padding:8px 12px;display:flex;flex-direction:column;justify-content:center;font-family:'JetBrains Mono';font-size:12px;text-align:center;min-width:86px}
+  .sb-meta b{color:var(--tele)}
+  .sb-sit{background:var(--tele);color:#111;font-family:'JetBrains Mono';font-weight:800;font-size:12.5px;padding:6px 12px;letter-spacing:.03em}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1.5px dashed #d8d2c4;font-size:13.5px}
+  .kv span{color:#4a463e}.kv b{text-align:right}
+  #story p{font-size:14.5px;line-height:1.7;margin-top:12px;color:#2b2822;font-family:'Familjen Grotesk',sans-serif}
+  #story b{color:#15130f}
+
+  /* beats */
+  #beats{display:grid;gap:8px}
+  button.beat{display:grid;grid-template-columns:42px 1fr auto;gap:12px;text-align:left;padding:10px 12px;cursor:pointer;align-items:start}
+  .beat .bt-n{font-family:'JetBrains Mono';font-weight:800;font-size:15px;color:var(--pink)}
+  .beat .bt-b > b{display:block;font-family:'Clash Display';font-weight:600;font-size:15.5px;margin-bottom:2px}
+  .beat .bt-b span{font-size:13.5px;line-height:1.6;color:#4a463e;font-family:'Familjen Grotesk',sans-serif}
+  .beat .bt-t{font-family:'JetBrains Mono';font-size:11px;color:#7a756a}
+  button.beat.on{background:#fffbe0 !important;color:#15130f !important;border-color:#1a1a1a !important;box-shadow:4px 4px 0 var(--pink) !important}
+  button.beat.on .bt-n{color:#ff2d77}
+
+  /* breakdowns */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:900px){.two{grid-template-columns:1fr}}
+  .bd-head{font-size:14.5px;line-height:1.65;margin-bottom:10px;font-family:'Familjen Grotesk',sans-serif;color:#2b2822}
+  .facts{margin-bottom:12px}
+  .item,.why{display:grid;grid-template-columns:22px 1fr;gap:12px;padding:11px 10px;border:2px solid transparent;cursor:default;margin:0 -10px}
+  .item[data-focus],.why[data-focus]{cursor:pointer}
+  .item[data-focus]:hover,.why[data-focus]:hover{border-color:#1a1a1a;background:#faf8f3}
+  .item.foc,.why.foc{border-color:#ff2d77;background:#fff5f8}
+  .item .sw{width:18px;height:18px;border:2px solid #1a1a1a;margin-top:3px}
+  .item div > b,.why div > b{font-family:'Clash Display';font-weight:600;font-size:15.5px}
+  .item p,.why p{font-size:13.8px;line-height:1.65;color:#3a362e;margin-top:3px;font-family:'Familjen Grotesk',sans-serif}
+  .why .wn{width:22px;height:22px;background:#15130f;color:var(--tele);font-family:'JetBrains Mono';font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .tapnote{font-family:'JetBrains Mono';font-size:11px;color:#7a756a;margin:-4px 0 10px}
+  #sources{font-family:'JetBrains Mono';font-size:11.5px;color:#4a463e;line-height:1.8}
+  #sources a{color:#ff2d77;text-decoration:underline}
+  #sources span{color:#7a756a}
+
+  /* learn */
+  .gl{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+  .gl div{border:2px solid #1a1a1a;padding:10px 12px;background:#faf8f3}
+  .gl b{font-family:'JetBrains Mono';font-weight:800;color:#ff2d77;margin-right:6px}
+  .gl i{font-style:normal;font-weight:700}
+  .gl p{font-size:13px;line-height:1.55;color:#3a362e;margin-top:3px;font-family:'Familjen Grotesk',sans-serif}
+  #concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:18px}
+  .concept{border:2px solid #1a1a1a;background:#fff;box-shadow:3px 3px 0 #1a1a1a}
+  .concept .c-fig{width:100%;background:#0d0f0c;border-bottom:2px solid #1a1a1a}
+  .concept .c-fig svg{width:100%;height:100%;display:block}
+  .concept > b{display:block;font-family:'Clash Display';font-weight:600;font-size:16px;padding:10px 12px 0}
+  .concept p{font-size:13px;line-height:1.6;color:#3a362e;padding:4px 12px 12px;font-family:'Familjen Grotesk',sans-serif}
+  .disc{font-family:'JetBrains Mono';font-size:11px;color:#7a756a;line-height:1.7}
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--text-faint);font-size:13px;text-align:center;margin-top:20px}
+  .tok{cursor:pointer}
+</style>
+<link rel="stylesheet" href="../core-theme.css">
+</head>
+<body>
+<nav><div class="nav-in">
+  <a href="../index.html" class="brand"><span class="dot"></span>ARIEL BODIK</a>
+  <div class="navr"><a href="filmroom-nfl.html" class="sib">NFL</a><a href="filmroom-nhl.html" class="sib">NHL</a><a href="filmroom-nba.html" class="sib cur">NBA</a><a href="../index.html" class="back">← all tools</a></div>
+</div></nav>
+
+<header class="head wrap">
+  <div class="kick">◆ Sports Film Study · NBA</div>
+  <h1>FilmRoom NBA <span class="g">real shots, broken down</span></h1>
+  <p>Pick a famous possession. Get the situation, watch it run on a to-scale overhead court, then see the offensive action, the defensive coverage and why the ball went in. The court follows NBA dimensions: 94 × 50 ft, a 23 ft 9 in arc with 22-ft corners, a 16-ft lane and the rim 5 ft 3 in from the baseline.</p>
+</header>
+
+<main class="wrap">
+  <h2 class="sec">Pick a play</h2>
+  <div id="picker"></div>
+
+  <div id="film-wrap">
+      <div class="monitor">
+        <div class="mon-top"><span class="rec"><i></i>OVERHEAD · HALF COURT</span><span>Overhead · drawn to scale</span></div>
+        <div id="badge"></div>
+        <div id="film" title="Click a player to spotlight them"></div>
+        <div class="cap"><div class="cn"><small>BEAT</small><span id="cap-n">01</span></div><div class="cb"><b id="cap-t"></b><span id="cap-x"></span></div></div>
+        <div class="ctrl">
+          <div class="scrubwrap"><div class="track"><div id="prog"></div><div id="ticks"></div></div><input type="range" id="scrub" min="0" max="1" step="0.01" value="0" aria-label="Scrub through the play"></div>
+          <div class="row">
+            <button id="pp" class="primary">▶ Play</button>
+            <button id="pb" title="Previous beat (←)">◀ Beat</button>
+            <button id="nb" title="Next beat (→)">Beat ▶</button>
+            <button id="rs" title="Back to the start">⟲</button>
+            <span class="sp"></span>
+            <button class="spd" data-s="0.25">¼×</button><button class="spd on" data-s="0.5">½×</button><button class="spd" data-s="1">1×</button>
+            <span id="tread"></span>
+          </div>
+          <div class="row row2">
+            <label class="tg"><input type="checkbox" id="t-coach">Coach mode (pause at each beat)</label>
+            <label class="tg"><input type="checkbox" id="t-routes">Routes</label>
+            <label class="tg"><input type="checkbox" id="t-labels">Callouts</label>
+            <label class="tg"><input type="checkbox" id="t-names">Names</label>
+            <label class="tg"><input type="checkbox" id="t-all">All positions</label>
+          </div>
+          <div class="hint">Space = play/pause · ← → = step beats · click any player to spotlight them · ½× is the default so the action is readable</div>
+        </div>
+      </div>
+    </div>
+
+
+  <div class="grid">
+    <div class="panel">
+      <h3>The situation</h3>
+      <div id="scorebug"></div>
+      <div id="ctx-list"></div>
+      <div id="story"></div>
+    </div>
+    <div class="panel">
+      <h3>Beat by beat</h3>
+      <p class="tapnote">Tap a beat to jump the film there.</p>
+      <div id="beats"></div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="panel"><h3 id="off-h">Offense</h3><p class="tapnote">Tap a row to spotlight that player.</p><div id="off"></div></div>
+    <div class="panel"><h3 id="def-h">Defense</h3><p class="tapnote">Tap a row to spotlight that player.</p><div id="def"></div></div>
+  </div>
+
+  <div class="panel">
+    <h3>Why it happened the way it did</h3>
+    <div id="why"></div>
+    <div id="sources" style="margin-top:14px"></div>
+  </div>
+
+  <h2 class="sec" style="margin-top:34px">Learn to read it</h2>
+  <div class="panel">
+    <h3>Positions — names and jobs</h3>
+    <div class="gl"><div><b>PG — 1</b><i>Point guard</i><p>Brings the ball up and runs the offense.</p></div><div><b>SG — 2</b><i>Shooting guard</i><p>Usually the best outside shooter; works off screens.</p></div><div><b>SF — 3</b><i>Small forward</i><p>A wing who can shoot, drive and defend several positions.</p></div><div><b>PF — 4</b><i>Power forward</i><p>Plays inside and out; a “stretch 4” shoots threes.</p></div><div><b>C — 5</b><i>Center</i><p>Usually the tallest: protects the rim, rebounds, sets screens.</p></div><div><b>Ball handler · screener</b><i>Pick-and-roll roles</i><p>The screener blocks the ball handler’s defender, then rolls to the rim or pops out to shoot.</p></div><div><b>Strong side · help side</b><i>Sides of the floor</i><p>Strong side has the ball; help-side defenders sag toward the paint.</p></div><div><b>Closeout</b><i>Running at a shooter</i><p>Sprint, then chop your steps so you can contest without flying by.</p></div><div><b>Box out</b><i>Rebounding</i><p>Put your body between your man and the rim before going for the ball.</p></div><div><b>BLOB · SLOB</b><i>Inbound plays</i><p>Baseline and sideline out-of-bounds plays. After a late timeout the ball can be advanced to the frontcourt, 28 ft from the baseline.</p></div></div>
+  </div>
+  <div class="panel">
+    <h3>Floor spots, pick-and-roll coverages and zones</h3>
+    <p class="tapnote">Offense in red attacking the top basket, defense in white. Solid lines = offense movement; dashed orange = defenders; red = the second move.</p>
+    <div id="concepts"></div>
+  </div>
+  <div class="panel">
+    <p class="disc">Court: 94 × 50 ft; three-point arc 23 ft 9 in from the center of the basket and 22 ft in the corners (straight lines 3 ft inside each sideline, running about 14 ft from the baseline); lane 16 ft wide; free-throw line 15 ft from the backboard (19 ft from the baseline); backboard 4 ft in from the baseline; rim 18 in across, 10 ft high; restricted-area arc 4 ft; lines 2 in. Plays are reconstructed from broadcast footage and published accounts; spots and timing are close approximations, not tracking data.</p>
+  </div>
+</main>
+
+<footer>Ariel Bodik · FilmRoom · built as a self-contained page, no tracking, no data leaves your browser</footer>
+
+<script>
+/* FilmRoom engine — scale-accurate surfaces + animated telestration.
+   Native units: NFL = yards (120 x 53 1/3), NHL = feet (200 x 85), NBA = feet (94 x 50).
+   x runs along the length, y across (0 = top/far sideline). */
+window.Film = (function(){
+const NS='http://www.w3.org/2000/svg';
+function E(tag,a,p){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+const COL={y:'#eaff3d',o:'#ffb72b',c:'#7ef7ff',w:'#ffffff',r:'#ff4d6d',g:'#5dff7a',p:'#ff7ad9'};
+
+/* ---------------- surfaces ---------------- */
+const SURF={
+  nfl:{L:120,W:160/3,S:10,pad:3,bg:'#25602e',draw:drawNFL,tok:.62,ball:'football'},
+  nhl:{L:200,W:85,S:5,pad:4,bg:'#1f2b38',draw:drawNHL,tok:1.75,ball:'puck'},
+  nba:{L:94,W:50,S:10,pad:3,bg:'#3b2a1d',draw:drawNBA,tok:1.25,ball:'ball'}
+};
+
+function drawNFL(g,S){
+  const L=120,W=160/3,ln=.111*S; // 4-inch lines
+  E('rect',{x:-6*S,y:-6*S,width:132*S,height:(W+12)*S,fill:'#25602e'},g);
+  // 6-ft white border outside sidelines and end lines
+  E('rect',{x:-2*S,y:-2*S,width:124*S,height:(W+4)*S,fill:'#f4f4f0'},g);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,fill:'#2f7a3a'},g);
+  for(let x=10;x<110;x+=10)E('rect',{x:x*S,y:0,width:5*S,height:W*S,fill:'#348240'},g);
+  E('rect',{x:0,y:0,width:10*S,height:W*S,fill:'#2a6e35'},g);
+  E('rect',{x:110*S,y:0,width:10*S,height:W*S,fill:'#2a6e35'},g);
+  const ez=(x,rot)=>{const t=E('text',{x:x*S,y:W/2*S,fill:'rgba(255,255,255,.13)','font-size':4.2*S,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central','font-family':'Arial Black,Arial,sans-serif',transform:`rotate(${rot} ${x*S} ${W/2*S})`,'letter-spacing':S*.6},g);t.textContent='END ZONE';};
+  ez(5,-90);ez(115,90);
+  // yard lines every 5 yds, goal lines 8 in wide
+  for(let x=10;x<=110;x+=5){const w=(x===10||x===110)?.222*S:ln;E('rect',{x:x*S-w/2,y:0,width:w,height:W*S,fill:'#fff'},g);}
+  // hash marks (inbound lines 70'9" from each sideline, 2 ft long), sideline ticks
+  const h1=70.75/3,h2=W-h1;
+  for(let x=11;x<110;x++){ if(x%5===0)continue;
+    E('rect',{x:x*S-ln/2,y:(h1-2/3)*S,width:ln,height:2/3*S,fill:'#fff'},g);
+    E('rect',{x:x*S-ln/2,y:h2*S,width:ln,height:2/3*S,fill:'#fff'},g);
+    E('rect',{x:x*S-ln/2,y:(4/36)*S,width:ln,height:2/3*S,fill:'#fff'},g);
+    E('rect',{x:x*S-ln/2,y:(W-4/36-2/3)*S,width:ln,height:2/3*S,fill:'#fff'},g);}
+  // try-line marks: 1 yd long, 2 yds from each goal line
+  E('rect',{x:12*S-ln/2,y:(W/2-.5)*S,width:ln,height:S,fill:'#fff'},g);
+  E('rect',{x:108*S-ln/2,y:(W/2-.5)*S,width:ln,height:S,fill:'#fff'},g);
+  // numbers: 6 ft tall, tops 9 yds from the sideline; arrows point to nearer goal line
+  const num=(x,n,top)=>{const yb=top?9:W-9; // number top edge
+    const cy=top?(yb-1):(yb+1);
+    const d=String(n);const fs=2.75*S;
+    [[d[0],top?1.05:-1.05],[d[1],top?-1.05:1.05]].forEach(([ch,dx])=>{
+      const tx=(x+dx)*S,ty=cy*S;
+      const t=E('text',{x:tx,y:ty,fill:'#fff','font-size':fs,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central','font-family':'Arial Black,Arial,sans-serif',opacity:.92,transform:top?`rotate(180 ${tx} ${ty})`:''},g);t.textContent=ch;});
+    if(n!==50){const dir=x<60?-1:1;const ax=(x+dir*2.35)*S,ay=cy*S;
+      E('path',{d:`M${ax+dir*.55*S},${ay} L${ax},${ay-.28*S} L${ax},${ay+.28*S}Z`,fill:'#fff',opacity:.92},g);}};
+  [20,30,40,50,60,70,80,90,100].forEach(x=>{const n=x<=60?x-10:110-x;num(x,n,false);num(x,n,true);});
+  // goalposts on the end lines: uprights 18'6" apart
+  [0,120].forEach(x=>{E('rect',{x:x*S-.18*S,y:h1*S,width:.36*S,height:(h2-h1)*S,fill:'#ffd400',stroke:'#7a6500','stroke-width':.05*S},g);
+    E('rect',{x:(x?x:x-1.2)*S,y:(W/2-.12)*S,width:1.2*S,height:.24*S,fill:'#ffd400'},g);});
+  // pylons
+  [[10,0],[10,W],[0,0],[0,W],[110,0],[110,W],[120,0],[120,W]].forEach(([x,y])=>E('rect',{x:x*S-.17*S,y:y*S-.17*S,width:.34*S,height:.34*S,fill:'#ff7a00'},g));
+}
+
+function drawNHL(g,S){
+  const L=200,W=85,R=28;
+  E('rect',{x:-8*S,y:-8*S,width:216*S,height:101*S,fill:'#1f2b38'},g);
+  const id='rk'+Math.random().toString(36).slice(2,7);
+  const cp=E('clipPath',{id},g);E('rect',{x:0,y:0,width:L*S,height:W*S,rx:R*S,ry:R*S},cp);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,rx:R*S,ry:R*S,fill:'#f3f8fb'},g);
+  const c=E('g',{'clip-path':`url(#${id})`},g);
+  const red='#d6203a',blue='#1f4fbf',thin=2/12*S;
+  // goal lines 11 ft from end boards (2 in), trapezoid 18 ft at goal line -> 28 ft at boards
+  [11,189].forEach(x=>{E('rect',{x:x*S-thin/2,y:0,width:thin,height:W*S,fill:red},c);
+    const e=x<100?0:200;[-1,1].forEach(s=>E('line',{x1:x*S,y1:(42.5+s*9)*S,x2:e*S,y2:(42.5+s*14)*S,stroke:red,'stroke-width':thin},c));});
+  // blue lines 12 in wide; goal line to the line's far edge = 64 ft, leaving a 50-ft neutral zone (11+64+50+64+11 = 200)
+  [[74,75],[125,126]].forEach(([a,b])=>E('rect',{x:a*S,y:0,width:(b-a)*S,height:W*S,fill:blue},c));
+  E('rect',{x:99.5*S,y:0,width:S,height:W*S,fill:red},c);
+  E('rect',{x:99.5*S,y:0,width:S,height:W*S,fill:'none',stroke:'#fff','stroke-dasharray':`${2*S} ${2*S}`,'stroke-width':.25*S},c);
+  // center circle r=15, center dot 12 in
+  E('circle',{cx:100*S,cy:42.5*S,r:15*S,fill:'none',stroke:blue,'stroke-width':thin},c);
+  E('circle',{cx:100*S,cy:42.5*S,r:.5*S,fill:blue},c);
+  // referee crease r=10 at the boards
+  E('path',{d:`M${90*S},${W*S} A${10*S},${10*S} 0 0 1 ${110*S},${W*S}`,fill:'none',stroke:red,'stroke-width':thin},c);
+  // end-zone faceoff circles: dots 20 ft from goal line, 22 ft each side of center; r=15
+  [31,169].forEach(cx=>[20.5,64.5].forEach(cy=>{
+    E('circle',{cx:cx*S,cy:cy*S,r:15*S,fill:'none',stroke:red,'stroke-width':thin},c);
+    E('circle',{cx:cx*S,cy:cy*S,r:1*S,fill:red},c);
+    [-1,1].forEach(sx=>[-1,1].forEach(sy=>{const hx=(cx+sx*(5.583/2))*S;const y0=cy+sy*Math.sqrt(225-(5.583/2)**2);
+      E('line',{x1:hx,y1:y0*S,x2:hx,y2:(y0+sy*2)*S,stroke:red,'stroke-width':thin},c);}));}));
+  // neutral-zone dots 5 ft outside each blue line, in the neutral zone
+  [[80,20.5],[80,64.5],[120,20.5],[120,64.5]].forEach(([x,y])=>E('circle',{cx:x*S,cy:y*S,r:1*S,fill:red},c));
+  // creases + nets (6 ft wide posts, ~40 in deep)
+  [[11,1],[189,-1]].forEach(([gl,d])=>{const a=Math.sqrt(36-16);
+    E('path',{d:`M${gl*S},${38.5*S} L${(gl+d*a)*S},${38.5*S} A${6*S},${6*S} 0 0 ${d>0?1:0} ${(gl+d*a)*S},${46.5*S} L${gl*S},${46.5*S}Z`,fill:'#9fd3ff',stroke:red,'stroke-width':thin},c);
+    E('path',{d:`M${gl*S},${39.5*S} L${(gl-d*3.33)*S},${40.2*S} Q${(gl-d*3.6)*S},${42.5*S} ${(gl-d*3.33)*S},${44.8*S} L${gl*S},${45.5*S}`,fill:'rgba(255,255,255,.75)',stroke:red,'stroke-width':.35*S},c);});
+  E('rect',{x:0,y:0,width:L*S,height:W*S,rx:R*S,ry:R*S,fill:'none',stroke:'#e9c300','stroke-width':1.1*S},g);
+  E('rect',{x:-.6*S,y:-.6*S,width:(L+1.2)*S,height:(W+1.2)*S,rx:(R+.6)*S,ry:(R+.6)*S,fill:'none',stroke:'#0d1218','stroke-width':.5*S},g);
+}
+
+function drawNBA(g,S){
+  const L=94,W=50,lc='#f7f1e6',lw=2/12*S;
+  E('rect',{x:-5*S,y:-5*S,width:104*S,height:60*S,fill:'#3b2a1d'},g);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,fill:'#d7a467'},g);
+  for(let y=0;y<W;y+=1.2)E('line',{x1:0,y1:y*S,x2:L*S,y2:y*S,stroke:'rgba(110,60,20,.10)','stroke-width':.06*S},g);
+  const ln=(x1,y1,x2,y2,dash)=>E('line',{x1:x1*S,y1:y1*S,x2:x2*S,y2:y2*S,stroke:lc,'stroke-width':lw,'stroke-dasharray':dash||''},g);
+  E('rect',{x:0,y:0,width:L*S,height:W*S,fill:'none',stroke:lc,'stroke-width':lw*1.2},g);
+  ln(47,0,47,W);
+  E('circle',{cx:47*S,cy:25*S,r:6*S,fill:'none',stroke:lc,'stroke-width':lw},g);
+  E('circle',{cx:47*S,cy:25*S,r:2*S,fill:'none',stroke:lc,'stroke-width':lw},g);
+  // sideline hashes 28 ft from each baseline (3 ft into court)
+  [28,66].forEach(x=>{ln(x,0,x,3);ln(x,W-3,x,W);});
+  [[0,1],[94,-1]].forEach(([b,d])=>{
+    const X=v=>b+d*v; const bx=X(5.25);
+    // painted lane 16 ft wide, free-throw line 19 ft from baseline
+    E('rect',{x:Math.min(X(0),X(19))*S,y:17*S,width:19*S,height:16*S,fill:'rgba(196,38,58,.55)',stroke:lc,'stroke-width':lw},g);
+    // free-throw circle r=6: solid outside lane, dashed inside
+    const fx=X(19);
+    E('path',{d:`M${fx*S},${19*S} A${6*S},${6*S} 0 0 ${d>0?1:0} ${fx*S},${31*S}`,fill:'none',stroke:lc,'stroke-width':lw},g);
+    E('path',{d:`M${fx*S},${19*S} A${6*S},${6*S} 0 0 ${d>0?0:1} ${fx*S},${31*S}`,fill:'none',stroke:lc,'stroke-width':lw,'stroke-dasharray':`${1.2*S} ${.9*S}`},g);
+    // lane-space marks
+    [7,8,11,14].forEach(v=>{ln(X(v),17,X(v),16.5);ln(X(v),33,X(v),33.5);});
+    // 3-pt: 22 ft corners (3 ft from sideline) to a 23'9" arc
+    const yc=Math.sqrt(23.75**2-22**2); // 8.95 ft
+    ln(X(0),3,X(5.25+yc),3);ln(X(0),47,X(5.25+yc),47);
+    E('path',{d:`M${X(5.25+yc)*S},${3*S} A${23.75*S},${23.75*S} 0 0 ${d>0?1:0} ${X(5.25+yc)*S},${47*S}`,fill:'none',stroke:lc,'stroke-width':lw},g);
+    // restricted area r=4 ft
+    E('path',{d:`M${X(4)*S},${21*S} L${bx*S},${21*S} A${4*S},${4*S} 0 0 ${d>0?1:0} ${bx*S},${29*S} L${X(4)*S},${29*S}`,fill:'none',stroke:lc,'stroke-width':lw},g);
+    // backboard 6 ft wide, 4 ft from baseline; rim 18 in diameter
+    E('line',{x1:X(4)*S,y1:22*S,x2:X(4)*S,y2:28*S,stroke:'#fff','stroke-width':.25*S},g);
+    E('line',{x1:X(4)*S,y1:25*S,x2:X(4.5)*S,y2:25*S,stroke:'#ff6a00','stroke-width':.15*S},g);
+    E('circle',{cx:bx*S,cy:25*S,r:.75*S,fill:'none',stroke:'#ff6a00','stroke-width':.16*S},g);
+  });
+}
+
+/* ---------------- helpers ---------------- */
+function lerp(a,b,u){return a+(b-a)*u;}
+function at(path,t){ // path: [[t,x,y],...]
+  if(t<=path[0][0])return [path[0][1],path[0][2]];
+  for(let i=1;i<path.length;i++){const p=path[i];if(t<=p[0]){const q=path[i-1];const u=(t-q[0])/((p[0]-q[0])||1);return [lerp(q[1],p[1],u),lerp(q[2],p[2],u)];}}
+  const l=path[path.length-1];return [l[1],l[2]];
+}
+
+/* ---------------- Film player ---------------- */
+function Film(host,opts){
+  this.host=host;this.opts=opts||{};this.t=0;this.speed=this.opts.speed||.5;this.playing=false;
+  this.show={routes:true,labels:true,names:true,coach:true};this.focus=null;
+  this.svg=E('svg',{class:'film-svg',preserveAspectRatio:'xMidYMid meet'},host);
+  this.defs=E('defs',{},this.svg);
+  this.gField=E('g',{},this.svg);this.gZones=E('g',{},this.svg);this.gRoutes=E('g',{},this.svg);this.gTrails=E('g',{},this.svg);
+  this.gTok=E('g',{},this.svg);this.gBall=E('g',{},this.svg);this.gNotes=E('g',{},this.svg);
+  this._raf=null;this._last=0;this.onTick=null;this.onBeat=null;
+}
+Film.prototype.M=function(x,y){const s=this.surf,S=s.S;
+  return this.orient==='up'?[y*S,(s.L-x)*S]:this.orient==='left'?[(s.L-x)*S,(s.W-y)*S]:[x*S,y*S];};
+Film.prototype.marker=function(color){
+  const id='ar'+color.replace(/[^a-z0-9]/gi,'');if(this.defs.querySelector('#'+id))return id;
+  const m=E('marker',{id,viewBox:'0 0 10 10',refX:6,refY:5,markerWidth:3.4,markerHeight:3.4,orient:'auto-start-reverse'},this.defs);
+  E('path',{d:'M0,0 L10,5 L0,10 Z',fill:color,stroke:'#111','stroke-width':.8},m);return id;};
+Film.prototype.load=function(play){
+  this.play=play;this.surf=SURF[play.surface];this.orient=play.orient||'right';
+  const s=this.surf,S=s.S;
+  [this.gField,this.gZones,this.gRoutes,this.gTrails,this.gTok,this.gBall,this.gNotes].forEach(g=>g.innerHTML='');
+  const fg=E('g',{},this.gField);
+  if(this.orient==='up')fg.setAttribute('transform',`matrix(0,-1,1,0,0,${s.L*S})`);
+  if(this.orient==='left')fg.setAttribute('transform',`rotate(180 ${s.L*S/2} ${s.W*S/2})`);
+  s.draw(fg,S);
+  const c=play.camera;const p1=this.M(c.x0,c.y0),p2=this.M(c.x1,c.y1);
+  const vx=Math.min(p1[0],p2[0]),vy=Math.min(p1[1],p2[1]),vw=Math.abs(p1[0]-p2[0]),vh=Math.abs(p1[1]-p2[1]);
+  this.vb=[vx,vy,vw,vh];this.svg.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);
+  this.u=vw/100; // UI unit
+  this.R=s.tok*S*(play.tokScale||1);
+  this.host.style.aspectRatio=`${vw} / ${vh}`;
+  this.R=s.tok*S*(play.tokScale||1);
+  // zones
+  (play.zones||[]).forEach(z=>{const col=COL[z.color]||z.color||COL.c;
+    const pts=z.pts.map(p=>this.M(p[0],p[1]).join(',')).join(' ');
+    E('polygon',{points:pts,fill:col,'fill-opacity':.2,stroke:col,'stroke-width':this.u*.25,'stroke-dasharray':`${this.u} ${this.u*.6}`},this.gZones);
+    if(z.label){const cx=z.pts.reduce((a,p)=>a+p[0],0)/z.pts.length,cy=z.pts.reduce((a,p)=>a+p[1],0)/z.pts.length;
+      const [sx,sy]=this.M(z.lx??cx,z.ly??cy);const t=E('text',{x:sx,y:sy,'text-anchor':'middle','dominant-baseline':'central',fill:'#fff','font-size':this.u*(play.zoneSize||2.6),'font-weight':700,'font-family':'JetBrains Mono,monospace',stroke:'#000','stroke-width':this.u*.5,'paint-order':'stroke'},this.gZones);t.textContent=z.label;}});
+  // routes (full, faint) + trails (bright, progressive)
+  this.routes=[];
+  play.players.forEach(p=>{if(!p.route)return;const col=COL[p.route.c]||p.route.c;
+    const from=p.route.from??0,to=p.route.to??Infinity;
+    const pts=p.path.filter(k=>k[0]>from&&k[0]<to).map(k=>[k[0],k[1],k[2]]);
+    const a=at(p.path,from);pts.unshift([from,a[0],a[1]]);
+    if(isFinite(to)){const b=at(p.path,to);pts.push([to,b[0],b[1]]);}
+    const d=pts.map((k,i)=>(i?'L':'M')+this.M(k[1],k[2]).join(',')).join(' ');
+    const mk=this.marker(col);const sw=this.R*.42;
+    const ghost=E('path',{d,fill:'none',stroke:col,'stroke-width':sw,'stroke-opacity':.28,'stroke-linejoin':'round','stroke-linecap':'round','stroke-dasharray':p.route.dash?`${sw*2} ${sw*1.4}`:''},this.gRoutes);
+    const halo=E('path',{fill:'none',stroke:'#0b0b0b','stroke-width':sw*1.9,'stroke-opacity':.55,'stroke-linejoin':'round','stroke-linecap':'round'},this.gTrails);
+    const live=E('path',{fill:'none',stroke:col,'stroke-width':sw,'stroke-linejoin':'round','stroke-linecap':'round','marker-end':`url(#${mk})`,'stroke-dasharray':p.route.dash?`${sw*2} ${sw*1.4}`:''},this.gTrails);
+    this.routes.push({p,pts,ghost,live,halo,from});});
+  // ball flight trail
+  this.flight=E('path',{fill:'none',stroke:'#fff','stroke-width':this.R*.22,'stroke-dasharray':`${this.R*.5} ${this.R*.45}`,opacity:.85},this.gTrails);
+  // tokens
+  this.toks={};
+  play.players.forEach(p=>{const g=E('g',{class:'tok'},this.gTok);const tm=play.teams[p.team];
+    const ring=E('circle',{r:this.R*1.85,fill:'none',stroke:COL.y,'stroke-width':this.R*.22,opacity:0},g);
+    E('circle',{r:this.R*1.08,fill:'rgba(0,0,0,.35)',cy:this.R*.18},g);
+    E('circle',{r:this.R,fill:tm.fill,stroke:tm.stroke,'stroke-width':this.R*.2},g);
+    const tx=E('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':this.R*(String(p.num??p.pos).length>2?.72:.95),'font-weight':800,fill:tm.text,'font-family':'JetBrains Mono,monospace'},g);tx.textContent=p.num??p.pos;
+    const lp=p.lp||(p.team==='D'?'t':'b');const nm=E('text',{'text-anchor':lp==='l'?'end':lp==='r'?'start':'middle',x:lp==='l'?-this.R*1.3:lp==='r'?this.R*1.3:0,y:lp==='t'?-this.R*1.45:lp==='b'?this.R*2.15:this.R*.32,'font-size':this.R*.82,'font-weight':700,fill:'#fff',stroke:'#000','stroke-width':this.R*.28,'paint-order':'stroke','font-family':'JetBrains Mono,monospace'},g);
+    nm.textContent=p.name?p.name:p.pos;
+    g.addEventListener('click',()=>{this.setFocus(this.focus===p.id?null:p.id);});
+    this.toks[p.id]={g,ring,nm,p};});
+  // ball
+  this.ballG=E('g',{},this.gBall);this.ballSh=E('ellipse',{fill:'rgba(0,0,0,.35)'},this.ballG);
+  const b=s.ball,R=this.R;
+  if(b==='football'){this.ballEl=E('g',{},this.ballG);E('ellipse',{rx:R*.62,ry:R*.38,fill:'#7a3f17',stroke:'#2b1406','stroke-width':R*.08},this.ballEl);E('line',{x1:-R*.2,x2:R*.2,y1:0,y2:0,stroke:'#fff','stroke-width':R*.08},this.ballEl);}
+  else if(b==='puck'){this.ballEl=E('g',{},this.ballG);E('circle',{r:R*.55,fill:'none',stroke:'#ffe14d','stroke-width':R*.16,opacity:.9},this.ballEl);E('circle',{r:R*.34,fill:'#0b0b0b'},this.ballEl);}
+  else{this.ballEl=E('g',{},this.ballG);E('circle',{r:R*.42,fill:'#e2701c',stroke:'#2a1405','stroke-width':R*.07},this.ballEl);E('line',{x1:-R*.42,x2:R*.42,y1:0,y2:0,stroke:'#2a1405','stroke-width':R*.06},this.ballEl);E('line',{y1:-R*.42,y2:R*.42,x1:0,x2:0,stroke:'#2a1405','stroke-width':R*.06},this.ballEl);}
+  // notes
+  this.notes=(play.notes||[]).map(n=>this.buildNote(n));
+  this.dur=play.dur;this.t=0;this.lastBeat=-1;this.render();
+};
+Film.prototype.buildNote=function(n){
+  const g=E('g',{opacity:0,class:'note'},this.gNotes);const u=this.u,fs=u*(this.play.noteSize||2.0);const col=COL[n.c||'y'];
+  const lines=n.text.split('\n');const w=Math.max(...lines.map(l=>l.length))*fs*.62+fs*1.1,h=lines.length*fs*1.22+fs*.7;
+  const lead=E('line',{stroke:col,'stroke-width':u*.38,'marker-end':`url(#${this.marker(col)})`},g);
+  const box=E('g',{},g);
+  E('rect',{x:-w/2,y:-h/2,width:w,height:h,fill:col,stroke:'#111','stroke-width':u*.22},box);
+  lines.forEach((l,i)=>{const t=E('text',{x:0,y:-h/2+fs*.35+fs*1.22*(i+.5)+fs*.05,'text-anchor':'middle','dominant-baseline':'central','font-size':fs,'font-weight':800,fill:'#111','font-family':'Arial,Helvetica,sans-serif'},box);t.textContent=l;});
+  const circ=E('circle',{fill:'none',stroke:col,'stroke-width':u*.4,r:this.R*1.75},g);
+  return {n,g,lead,box,circ,w,h};
+};
+Film.prototype.pos=function(id,t){const p=this.toks[id].p;return at(p.path,t);};
+Film.prototype.ballAt=function(t){
+  const kf=this.play.ball;const res=k=>k.on?this.pos(k.on,k.t):[k.x,k.y];
+  if(t<=kf[0].t){const k=kf[0];return {p:k.on?this.pos(k.on,t):[k.x,k.y],h:0,k:0};}
+  for(let i=1;i<kf.length;i++){const a=kf[i-1],b=kf[i];
+    if(t<=b.t){ if(a.on&&b.on&&a.on===b.on)return {p:this.pos(a.on,t),h:0,k:i};
+      const A=res(a),B=res(b);const u=(t-a.t)/((b.t-a.t)||1);
+      const d=Math.hypot(B[0]-A[0],B[1]-A[1]);const arc=b.arc??(this.surf.ball==='puck'?0:Math.min(d*.12,this.surf.ball==='ball'?4.5:5));
+      return {p:[lerp(A[0],B[0],u),lerp(A[1],B[1],u)],h:arc*4*u*(1-u),k:i,flight:{A,B,u,a,b}};}}
+  const l=kf[kf.length-1];return {p:l.on?this.pos(l.on,t):[l.x,l.y],h:0,k:kf.length};
+};
+Film.prototype.render=function(){
+  const t=this.t,R=this.R,S=this.surf.S;
+  for(const id in this.toks){const o=this.toks[id];const [x,y]=at(o.p.path,t);const [sx,sy]=this.M(x,y);
+    o.g.setAttribute('transform',`translate(${sx},${sy})`);
+    o.nm.style.display=(this.show.names&&(o.p.name||this.show.allNames))?'':'none';
+    const f=this.focus;o.g.style.opacity=f&&f!==id&&!(this.focusSet&&this.focusSet.includes(id))?.32:1;
+    o.ring.setAttribute('opacity',f===id?1:0);}
+  // trails
+  this.routes.forEach(r=>{r.ghost.style.display=this.show.routes?'':'none';
+    const vis=this.show.routes&&t>r.from;r.live.style.display=r.halo.style.display=vis?'':'none';if(!vis)return;
+    const pts=r.pts.filter(k=>k[0]<t).map(k=>[k[1],k[2]]);const cur=at(r.p.path,Math.min(t,r.pts[r.pts.length-1][0]));pts.push(cur);
+    const d=pts.map((k,i)=>(i?'L':'M')+this.M(k[0],k[1]).join(',')).join(' ');r.live.setAttribute('d',d);r.halo.setAttribute('d',d);
+    const f=this.focus;r.live.style.opacity=r.halo.style.opacity=f&&f!==r.p.id&&!(this.focusSet&&this.focusSet.includes(r.p.id))?.25:1;});
+  // ball
+  const b=this.ballAt(t);const [bx,by]=this.M(b.p[0],b.p[1]);const lift=b.h*S;
+  this.ballSh.setAttribute('cx',bx);this.ballSh.setAttribute('cy',by+R*.15);this.ballSh.setAttribute('rx',R*.5);this.ballSh.setAttribute('ry',R*.3);
+  const sc=1+b.h*.06;let rot=0;
+  if(b.flight){const A=this.M(b.flight.A[0],b.flight.A[1]),B=this.M(b.flight.B[0],b.flight.B[1]);rot=Math.atan2(B[1]-A[1],B[0]-A[0])*180/Math.PI;}
+  const held=!b.flight;const off=held?[R*.75,-R*.55]:[0,0];
+  this.ballEl.setAttribute('transform',`translate(${bx+off[0]},${by-lift+off[1]}) rotate(${rot}) scale(${sc})`);
+  this.ballSh.style.display=held?'none':'';
+  // pass/shot telestration (last completed or current flight)
+  let fl=null;const kf=this.play.ball;
+  for(let i=1;i<kf.length;i++){const a=kf[i-1],c=kf[i];if(a.on===c.on&&a.on)continue;if(a.t<t&&!c.noLine){fl={a,c};}}
+  if(fl&&this.show.routes){const A=fl.a.on?this.pos(fl.a.on,fl.a.t):[fl.a.x,fl.a.y];const tt=Math.min(t,fl.c.t);const u=(tt-fl.a.t)/((fl.c.t-fl.a.t)||1);
+    const B=fl.c.on?this.pos(fl.c.on,fl.c.t):[fl.c.x,fl.c.y];const P=[lerp(A[0],B[0],u),lerp(A[1],B[1],u)];
+    const a=this.M(A[0],A[1]),p=this.M(P[0],P[1]);this.flight.setAttribute('d',`M${a.join(',')} L${p.join(',')}`);this.flight.style.display='';}
+  else this.flight.style.display='none';
+  // notes
+  this.notes.forEach(o=>{const n=o.n;const on=this.show.labels&&t>=n.t0-1e-6&&t<(n.t1??1e9)-1e-6;o.g.setAttribute('opacity',on?1:0);if(!on)return;
+    let A=null;if(n.at){A=typeof n.at==='string'?this.M(...this.pos(n.at,t)):this.M(n.at[0],n.at[1]);}
+    let B;if(n.box)B=this.M(n.box[0],n.box[1]);else if(n.dx!==undefined&&A)B=[A[0]+n.dx*this.u,A[1]+n.dy*this.u];else B=A||[this.vb[0]+this.vb[2]/2,this.vb[1]+this.u*5];
+    {const [vx,vy,vw,vh]=this.vb,pd=this.u*.8;B=[Math.max(vx+o.w/2+pd,Math.min(vx+vw-o.w/2-pd,B[0])),Math.max(vy+o.h/2+pd,Math.min(vy+vh-o.h/2-pd,B[1]))];}
+    o.box.setAttribute('transform',`translate(${B[0]},${B[1]})`);
+    if(A&&n.lead!==false){const dx=A[0]-B[0],dy=A[1]-B[1];const L=Math.hypot(dx,dy)||1;
+      // start at box edge
+      const ex=Math.abs(dx)/(o.w/2),ey=Math.abs(dy)/(o.h/2);const k=1/Math.max(ex,ey);
+      const sx=B[0]+dx*Math.min(k,1),sy=B[1]+dy*Math.min(k,1);const end=n.circle===false?R*1.3:R*1.95;
+      if(L*(1-Math.min(k,1))>end*1.1){o.lead.style.display='';o.lead.setAttribute('x1',sx);o.lead.setAttribute('y1',sy);o.lead.setAttribute('x2',A[0]-dx/L*end);o.lead.setAttribute('y2',A[1]-dy/L*end);}else o.lead.style.display='none';}
+    else o.lead.style.display='none';
+    if(A&&n.circle!==false&&typeof n.at==='string'){o.circ.style.display='';o.circ.setAttribute('cx',A[0]);o.circ.setAttribute('cy',A[1]);}else o.circ.style.display='none';});
+  if(this.onTick)this.onTick(t);
+};
+Film.prototype.setFocus=function(id,set){this.focus=id;this.focusSet=set||null;this.render();if(this.onFocus)this.onFocus(id);};
+Film.prototype.seek=function(t){this.t=Math.max(0,Math.min(this.dur,t));this.render();};
+Film.prototype.beatIndex=function(t){const bs=this.play.beats;let k=0;bs.forEach((b,i)=>{if(t>=b.t-1e-6)k=i;});return k;};
+Film.prototype.playPause=function(on){this.playing=on===undefined?!this.playing:on;
+  if(this.playing){if(this.t>=this.dur-1e-3)this.t=0;this._last=performance.now();const step=now=>{if(!this.playing)return;
+      const dt=Math.min(.05,(now-this._last)/1000)*this.speed;this._last=now;const prev=this.t;let nt=prev+dt;
+      if(this.show.coach){const hit=this.play.beats.find(b=>b.t>prev+1e-6&&b.t<=nt&&b.t>0&&!b.noStop);if(hit){nt=hit.t;this.t=nt;this.render();this.playing=false;if(this.onState)this.onState();return;}}
+      if(nt>=this.dur){this.t=this.dur;this.render();this.playing=false;if(this.onState)this.onState();return;}
+      this.t=nt;this.render();this._raf=requestAnimationFrame(step);};
+    this._raf=requestAnimationFrame(step);}
+  else cancelAnimationFrame(this._raf);
+  if(this.onState)this.onState();};
+
+/* static diagram (concept cards): tokens at start, routes drawn complete */
+Film.diagram=function(host,def){const f=new Film(host);f.show.coach=false;f.load(def);f.t=0;
+  f.routes.forEach(r=>{r.live.style.display=r.halo.style.display='';const d=r.pts.map((k,i)=>(i?'L':'M')+f.M(k[1],k[2]).join(',')).join(' ');r.live.setAttribute('d',d);r.halo.setAttribute('d',d);r.ghost.style.display='none';});
+  f.render=function(){Film.prototype.render.call(f);f.routes.forEach(r=>{r.live.style.display=r.halo.style.display='';const d=r.pts.map((k,i)=>(i?'L':'M')+f.M(k[1],k[2]).join(',')).join(' ');r.live.setAttribute('d',d);r.halo.setAttribute('d',d);r.ghost.style.display='none';});};
+  f.render();return f;};
+Film.SURF=SURF;Film.at=at;
+return Film;
+})();
+
+</script>
+<script>
+/* NBA plays — units are feet on a 94 x 50 court. x = distance from the left baseline
+   (right basket center at x = 88.75: backboard 4 ft in + 15 in to rim center), y = distance from the far sideline.
+   The film shows the attacking basket at the top. */
+(function(){
+function P(id,team,pos,num,name,path,route,lp){return {id,team,pos,num,name,path,route,lp};}
+const MIA={name:"Miami",fill:"#98002e",stroke:"#f9a01b",text:"#ffffff"};
+const SAS={name:"San Antonio",fill:"#111111",stroke:"#c4ced4",text:"#ffffff"};
+const TOR={name:"Toronto",fill:"#ce1141",stroke:"#111111",text:"#ffffff"};
+const PHI={name:"Philadelphia",fill:"#006bb6",stroke:"#ffffff",text:"#ffffff"};
+const NOTE="Player spots and timing are reconstructed from broadcast footage and published accounts, not tracking data. Names appear only where sources confirm the player’s role; everyone else is labeled by position.";
+const cam={x0:45,x1:95.5,y0:-1.6,y1:51.6};
+
+/* ============ 1. RAY ALLEN — 2013 FINALS, GAME 6 ============ */
+const allen={
+  id:"allen",surface:"nba",orient:"up",dur:4.7,camera:cam,
+  teams:{O:MIA,D:SAS},
+  tag:"NBA Finals Game 6 · June 18, 2013",title:"Ray Allen’s corner three",
+  sub:"Down three, title slipping away: a missed three, an offensive rebound, and a backpedal into the corner.",
+  badge:"Offensive rebound → kick-out vs. a switch-everything lineup",
+  context:{scorebug:[{abbr:"MIA",score:"92",fill:"#98002e"},{abbr:"SAS",score:"95",fill:"#c4ced4"}],
+    period:"4TH",clock:"<0:10",situation:"Miami down 3 · Spurs lead the series 3–2",
+    facts:[["Game","2013 NBA Finals, Game 6"],["Venue","AmericanAirlines Arena, Miami"],["Spurs’ choice","Tim Duncan on the bench so they could switch every screen"],["Result","Allen ties it 95–95 with 5.2 s left; Miami wins in OT, 103–100"],["After","Miami wins Game 7 for back-to-back titles"]]},
+  story:[
+    "San Antonio was seconds from the championship. Miami trailed <b>95–92</b>, and the Spurs had led by five inside the final half-minute.",
+    "For this last defensive possession, Gregg Popovich took <b>Tim Duncan</b> off the floor so his smaller lineup could <b>switch every screen</b> and stop a game-tying three. The trade-off: no Duncan on the defensive glass.",
+    "<b>LeBron James</b> missed a three from the left wing. <b>Chris Bosh</b> out-jumped two Spurs for the rebound and found <b>Ray Allen</b>, who was backpedaling into the right corner. Allen tied it with <b>5.2 seconds</b> left."],
+  players:[
+    P("LBJ","O","SF",6,"James",[[0,68.2,12.0],[0.5,68.6,11.6],[1.4,71.5,13.5],[2.6,73.5,15.8],[4.7,74.5,16.5]],null,"l"),
+    P("BOS","O","PF",1,"Bosh",[[0,79.5,24.5],[1.3,83.8,28.2],[2.05,85.3,29.6],[2.4,85.4,29.8],[4.7,84.6,30.2]],{c:"c",from:0.4},"l"),
+    P("RAY","O","SG",34,"Allen",[[0,82.5,41.5],[1.2,84.3,42.6],[2.0,86.6,45.0],[2.8,89.2,47.55],[3.15,89.4,47.7],[4.7,89.4,47.7]],{c:"y",from:1.0},"t"),
+    P("MG","O","G",null,null,[[0,61.5,30.0],[2.0,63.0,31.0],[4.7,64.0,31.5]]),
+    P("MF","O","F",null,null,[[0,90.0,3.6],[2.0,89.0,6.5],[4.7,88.5,8.0]]),
+    P("KAW","D","SF",2,"Leonard",[[0,71.6,13.6],[0.5,70.7,12.9],[1.4,75.5,16.5],[2.4,79.0,19.0],[4.7,80.0,20.0]],null,"r"),
+    P("TP","D","PG",9,"Parker",[[0,80.4,38.6],[1.4,83.2,40.6],[2.05,84.6,42.2],[2.85,86.9,45.0],[3.15,87.9,46.1],[4.7,87.7,45.9]],{c:"o",from:2.05,dash:true},"l"),
+    P("SF1","D","F",null,null,[[0,85.5,12.0],[1.3,86.4,24.0],[2.0,86.6,27.6],[4.7,86.0,27.4]]),
+    P("SF2","D","F",null,null,[[0,82.0,27.8],[1.3,83.4,30.8],[2.0,84.0,31.6],[4.7,83.6,31.2]]),
+    P("SG","D","G",null,null,[[0,65.0,28.5],[2.0,67.0,29.5],[4.7,68.0,30.0]])
+  ],
+  ball:[{t:0,on:"LBJ"},{t:0.5,on:"LBJ"},{t:1.55,x:88.6,y:24.6,arc:7},{t:2.05,on:"BOS",arc:2.2},{t:2.35,on:"BOS"},{t:2.85,on:"RAY",arc:1.2},{t:3.15,on:"RAY"},{t:4.15,x:88.75,y:25.0,arc:9},{t:4.7,x:88.75,y:25.0,noLine:true}],
+  beats:[
+    {t:0,title:"Down three, LeBron shoots",text:"<b>LeBron James</b> launches a game-tying three from the left wing with <b>Kawhi Leonard</b> contesting."},
+    {t:1.55,title:"Miss",text:"It clanks off the rim toward the right side. Without Duncan, the Spurs are small around the basket."},
+    {t:2.05,title:"Bosh gets it",text:"<b>Chris Bosh</b> out-jumps two Spurs for the offensive rebound and looks for a shooter immediately."},
+    {t:2.35,title:"The kick-out",text:"<b>Ray Allen</b> has been backpedaling toward the right corner, finding the three-point line with his feet without looking down."},
+    {t:3.15,title:"Corner three",text:"Allen catches, rises and shoots over <b>Tony Parker</b>’s late contest."},
+    {t:4.15,title:"Tied, 95–95",text:"Good with <b>5.2 seconds</b> left. Miami wins in overtime and then wins Game 7."}],
+  notes:[
+    {t0:0,t1:1.55,at:"LBJ",text:"LeBron: three to tie",c:"y",box:[62,6]},
+    {t0:0,t1:2.05,at:"RAY",text:"Allen drifts to the corner",c:"y",box:[58,42]},
+    {t0:1.55,t1:2.35,at:"BOS",text:"Bosh out-jumps two Spurs",c:"c",box:[60,20]},
+    {t0:2.35,t1:3.15,at:"TP",text:"Parker: late closeout",c:"o",box:[71,44]},
+    {t0:3.15,t1:9,at:"RAY",text:"CORNER THREE — TIED 95–95",c:"r",box:[93.5,30]}],
+  offense:{label:"Miami offense",headline:"There was no set play by the end — this was a <b>scramble</b>. What made it work were two habits: a big man crashing the glass and a shooter who knows exactly where the line is.",
+    facts:[["Need","A three to tie"],["Shot 1","LeBron, left-wing three — miss"],["Second chance","Bosh offensive rebound"],["Shot 2","Allen, right-corner three — good"]],
+    items:[
+      {who:"LBJ",c:"w",title:"LeBron James — first shot",text:"Takes the game-tying three from the left wing. It misses, but the miss is long and right — toward Bosh."},
+      {who:"BOS",c:"c",title:"Chris Bosh — offensive rebound and pass",text:"Fights between two smaller Spurs for the ball and turns straight to the corner. No dribble, no wasted second."},
+      {who:"RAY",c:"y",title:"Ray Allen — corner shooter",text:"Backpedals to the corner while the shot is in the air, sets his feet behind the line without looking down, and shoots in rhythm."},
+      {who:"MG",c:"w",title:"Spacing",text:"The other Heat players stay spread out, so no Spur can sit in the lane to help."}]},
+  defense:{label:"San Antonio defense",headline:"A <b>small, switch-everything</b> lineup chosen to stop a three. It worked on the first shot — the contest was good — but without a true center the Spurs lost the rebound, and a scramble defense has no assignments.",
+    facts:[["Lineup","Small — Duncan on the bench"],["Scheme","Switch every screen"],["Weak spot","Defensive rebounding"],["Corner contest","Tony Parker"]],
+    items:[
+      {who:"KAW",c:"w",title:"Kawhi Leonard — on LeBron",text:"Contests the first three well. Then he’s out on the perimeter, far from the rebound."},
+      {who:"SF1",c:"w",title:"The two Spurs near the rim",text:"Both go for the ball and Bosh out-jumps both of them. Neither boxed him out."},
+      {who:"TP",c:"o",title:"Tony Parker — closeout",text:"He’s near the paint watching the rebound, so he has to sprint to the corner. At 6-foot-2 and arriving late, he can’t bother the shot."}]},
+  why:[
+    {title:"The trade-off came due",text:"Benching Duncan made it easier to switch and contest the first three. It also took the Spurs’ best rebounder off the floor, and the rebound decided the game.",focus:["SF1","SF2","BOS"]},
+    {title:"Nobody boxed out Bosh",text:"Two Spurs went for the ball; nobody put a body on Bosh first. A missed three usually bounces long, toward the side of the floor — exactly where he was.",focus:["BOS","SF1"]},
+    {title:"The scramble erased assignments",text:"When a long rebound pulls defenders inward, shooters behind the line get left. The corner is the shortest three and the hardest spot to close out to.",focus:["RAY","TP"]},
+    {title:"Allen knew where the line was",text:"He backpedaled into the corner and got his feet behind the line without looking down — a habit built over years of practice reps.",focus:["RAY"]}],
+  sources:[{t:"NBA.com — Finals moments: Ray Allen’s 3-pointer",u:"https://www.nba.com/news/history-finals-moments-ray-allen-3-pointer-game-6"},{t:"Grantland — Game 6",u:"https://grantland.com/features/nba-finals-game-6-heat-spurs/"}],
+  caveat:NOTE
+};
+
+/* ============ 2. KAWHI LEONARD — 2019 EAST SEMIS, GAME 7 ============ */
+const BUZ=0.55+4.2;
+const kawhi={
+  id:"kawhi",surface:"nba",orient:"up",dur:6.0,camera:cam,
+  teams:{O:TOR,D:PHI},
+  tag:"East semifinals Game 7 · May 12, 2019",title:"Kawhi Leonard’s four-bounce winner",
+  sub:"Tied at 90 with 4.2 seconds left. One inbound, five dribbles, a fadeaway over Embiid — and four bounces on the rim.",
+  badge:"Inbound to the star, isolate, beat the switch to the corner",
+  context:{scorebug:[{abbr:"TOR",score:"90",fill:"#ce1141"},{abbr:"PHI",score:"90",fill:"#006bb6"}],
+    period:"4TH",clock:"0:04.2",situation:"Tied · Toronto ball after a timeout · frontcourt inbound",
+    facts:[["Game","East semifinals, Game 7"],["Venue","Scotiabank Arena, Toronto"],["How it got tied","Jimmy Butler’s basket tied it with 4.2 s left"],["Result","Toronto wins 92–90 — first Game 7 buzzer-beater winner in NBA history"],["Kawhi’s night","41 points"]]},
+  story:[
+    "Game 7, tied <b>90–90</b>. Philadelphia’s <b>Jimmy Butler</b> had just scored to tie it with <b>4.2 seconds</b> left. Toronto called timeout to inbound in the frontcourt.",
+    "There was no mystery about who would shoot. <b>Marc Gasol</b> inbounded to <b>Kawhi Leonard</b> past the top of the key. <b>Ben Simmons</b> was guarding him; <b>Joel Embiid</b> came over and stayed with him as he dribbled to the right corner.",
+    "Kawhi rose over Embiid’s long arms with extra arc, fading toward the sideline. The ball hit the rim <b>four times</b> — still bouncing when the buzzer sounded — and dropped in. Toronto went on to win the 2019 championship."],
+  players:[
+    P("KAW","O","SF",2,"Leonard",[[0,70.0,18.5],[0.55,62.6,26.5],[1.2,66.8,33.0],[1.9,73.6,39.4],[2.6,80.2,43.8],[3.2,84.5,46.2],[3.35,85.0,46.6],[3.8,84.4,47.6],[6,84.2,47.8]],{c:"y",from:0.55},"t"),
+    P("GAS","O","C",33,"Gasol",[[0,66.0,-1.2],[0.4,66.0,-1.2],[1.2,68.0,2.5],[3.0,72.5,6.0],[6,74.0,7.0]],null,"r"),
+    P("RG","O","G",null,null,[[0,59.5,9.0],[3,60.0,8.5],[6,60.0,8.5]]),
+    P("RF","O","F",null,null,[[0,89.8,3.6],[6,89.6,3.8]]),
+    P("RF2","O","F",null,null,[[0,85.0,15.5],[2.4,85.6,13.5],[6,86.0,13.0]]),
+    P("BEN","D","PG",25,"Simmons",[[0,68.0,21.0],[0.55,64.8,26.2],[1.2,67.4,30.8],[1.9,72.4,36.6],[2.6,77.5,40.6],[3.35,80.6,42.8],[6,81.0,43.0]],{c:"o",from:0.55,dash:true},"r"),
+    P("JOE","D","C",21,"Embiid",[[0,83.6,18.5],[0.55,82.6,22.5],[1.2,80.6,29.5],[1.9,80.0,36.0],[2.6,81.9,42.0],[3.35,83.7,44.6],[3.8,84.0,45.2],[6,84.2,45.5]],{c:"o",from:0.4,dash:true},"l"),
+    P("PF","D","F",null,null,[[0,67.6,2.6],[1.2,69.2,5.6],[3,71.0,9.6],[6,71.5,10.2]]),
+    P("PG","D","G",null,null,[[0,61.5,11.5],[3,62.5,12.5],[6,62.8,12.8]]),
+    P("PF2","D","F",null,null,[[0,87.5,6.5],[2.4,86.6,8.8],[6,86.4,9.5]])
+  ],
+  ball:[{t:0,on:"GAS"},{t:0.4,on:"GAS"},{t:0.55,on:"KAW",arc:2.5},{t:3.35,on:"KAW"},{t:4.25,x:88.45,y:25.35,arc:8},{t:4.6,x:88.95,y:24.65,arc:1.1,noLine:true},{t:4.95,x:88.55,y:25.2,arc:.9,noLine:true},{t:5.25,x:88.9,y:24.85,arc:.6,noLine:true},{t:5.6,x:88.75,y:25.0,arc:.3,noLine:true},{t:6,x:88.75,y:25.0,noLine:true}],
+  beats:[
+    {t:0,title:"The inbound",text:"Tied at 90, 4.2 seconds left. <b>Marc Gasol</b> inbounds from the sideline. Everyone in the building knows where it’s going."},
+    {t:0.55,title:"Kawhi catches",text:"<b>Kawhi Leonard</b> catches past the top of the key with <b>Ben Simmons</b> on him. The clock starts."},
+    {t:1.9,title:"Embiid comes over",text:"Kawhi drives right toward the corner. <b>Joel Embiid</b>, 7 feet tall, leaves the paint and stays with him dribble for dribble."},
+    {t:3.35,title:"The fadeaway",text:"From the right corner, inside the three-point line, Kawhi fades toward the sideline and shoots with extra arc to clear Embiid’s reach."},
+    {t:4.25,title:"Rim…",text:"The ball hits the front of the rim and pops straight up."},
+    {t:BUZ,title:"Buzzer — still bouncing",text:"Time expires with the ball still on the rim. A shot released in time counts if it goes in."},
+    {t:5.6,title:"In. 92–90.",text:"Fourth bounce, and it drops. The first Game 7 buzzer-beater winner in NBA history."}],
+  notes:[
+    {t0:0,t1:0.55,at:"GAS",text:"Inbound from the sideline",c:"c",box:[58,2]},
+    {t0:0.55,t1:1.9,at:"BEN",text:"Simmons trails the drive",c:"o",box:[56,36]},
+    {t0:1.9,t1:3.35,at:"JOE",text:"Embiid comes out to the corner",c:"o",box:[70,22]},
+    {t0:3.35,t1:4.25,at:"KAW",text:"Fadeaway over 7 feet",c:"y",box:[74,32]},
+    {t0:4.25,t1:5.6,at:[88.75,25],text:"Bounce… bounce… bounce…",c:"w",box:[80,25],circle:false},
+    {t0:5.6,t1:9,at:[88.75,25],text:"GOOD — 92–90 AT THE BUZZER",c:"r",box:[79,25],circle:false}],
+  offense:{label:"Toronto offense",headline:"An <b>isolation</b> for the best player on the floor. The design is simple: get Kawhi the ball on the move, give him room, and let him go one-on-one.",
+    facts:[["Set","Sideline inbound after timeout"],["Concept","Catch on the move → isolation"],["Shot","Right-corner fadeaway (a two)"],["Time used","About 2.8 s of the 4.2"]],
+    items:[
+      {who:"KAW",c:"y",title:"Kawhi Leonard — the shooter",text:"Catches with momentum away from the basket, then drives right. Taking it to the corner uses the sideline and baseline as walls, so only one defender can really reach him."},
+      {who:"GAS",c:"w",title:"Marc Gasol — inbounder",text:"A big man who passes well, so the inbound is safe and on time."},
+      {who:"RF2",c:"w",title:"Spacing",text:"The other Raptors stay out of the way so no extra Sixer can help."}]},
+  defense:{label:"Philadelphia defense",headline:"<b>Simmons</b> guarded the catch, then <b>Embiid</b> came over to take Kawhi on the drive. The 76ers got exactly what they wanted: a contested, off-balance, fading two-pointer by a player going away from the basket.",
+    facts:[["On the catch","Ben Simmons"],["On the shot","Joel Embiid"],["Contest","Good — forced a high, fading release"],["Result","Made anyway"]],
+    items:[
+      {who:"BEN",c:"o",title:"Ben Simmons — on the catch",text:"Let Kawhi catch it cleanly past the top of the key, then trailed the drive. That gave Kawhi his momentum."},
+      {who:"JOE",c:"o",title:"Joel Embiid — on the shot",text:"Left the paint, picked Kawhi up and stayed with him. His length forced the higher arc — which, by luck, may have helped the ball sit on the rim."},
+      {who:"PF2",c:"w",title:"Help side",text:"Stayed home on the shooters. With 4 seconds left, giving up an open pass is worse than giving up a tough shot."}]},
+  why:[
+    {title:"The catch came easy",text:"Kawhi caught the inbound with room and momentum. In end-of-game sets, a clean catch is half the battle.",focus:["KAW","BEN"]},
+    {title:"The corner limits help",text:"By driving to the corner, Kawhi used the sideline and baseline as extra defenders on his side. Only Embiid could reach him.",focus:["KAW","JOE"]},
+    {title:"Great defense, great shot",text:"Philadelphia defended it well. Embiid’s length forced a high, fading shot — a low-percentage look made by an elite shooter.",focus:["JOE"]},
+    {title:"Soft arc, soft bounces",text:"The higher arc meant the ball came down softly on the rim, so it bounced up instead of away. Four bounces later it fell in.",focus:["KAW"]}],
+  sources:[{t:"Philadelphia Inquirer — the shot, revisited",u:"https://www.inquirer.com/sixers/kawhi-leonard-game-winner-game-7-vs-the-sixers-joel-embiid-ben-simmons-toronto-raptors-20200429.html"},{t:"ESPN — Kawhi’s historic game-winner",u:"https://africa.espn.com/nba/story/_/id/26734241/kawhi-leonard-historic-game-winner"},{t:"The Ringer — oral history",u:"https://www.theringer.com/2019/12/10/year-in-review/oral-history-the-shot-kawhi-leonard-toronto-raptors-philadelphia-sixers"}],
+  caveat:NOTE
+};
+window.PLAYS=[allen,kawhi];
+
+/* ---------- concepts ---------- */
+const O={name:"Offense",fill:"#ce1141",stroke:"#111",text:"#fff"},D={name:"Defense",fill:"#f4f4f2",stroke:"#006bb6",text:"#003a70"};
+const M=(id,team,pos,x,y,to,c,dash)=>P(id,team,pos,null,null,to?[[0,x,y]].concat(to.map((p,i)=>[i+1,p[0],p[1]])):[[0,x,y]],to?{c:c||"y",from:0,dash:dash??team==="D"}:null);
+const C=(title,text,players,zones)=>({title,text,surface:"nba",orient:"up",dur:3,camera:cam,tokScale:1.25,zoneSize:2.5,noteSize:2.4,teams:{O,D},players,ball:[{t:0,on:players.find(p=>p.team==="O")?players.find(p=>p.team==="O").id:"x"}],zones:zones||[],notes:[],beats:[{t:0,title:"",text:""}]});
+const pnr=(xs)=>[M("bh","O","BH",61.8,25,[[65.4,31.0],[70,33.8]],"y",false),M("s","O","S",65.6,28.6,xs.roll||[[71,28.6],[82,26.5]],"c",false)].concat(xs.d);
+window.CONCEPTS=[
+  C("Court map","Names for spots on the floor: <b>top of the key</b>, <b>slots</b>, <b>wings</b>, <b>corners</b>, <b>elbows</b> (corners of the free-throw line), <b>blocks</b> (low on the lane), <b>short corner</b>, and the <b>dunker spot</b> just outside the lane under the rim.",
+    [M("x","O","",0,0)],
+    [{pts:[[64.5,20],[69,20],[69,30],[64.5,30]],color:"c",label:"TOP"},{pts:[[64.5,6],[74,6],[74,17],[64.5,17]],color:"y",label:"WING"},{pts:[[64.5,33],[74,33],[74,44],[64.5,44]],color:"y",label:"WING"},
+     {pts:[[80,0.3],[94,0.3],[94,2.8],[80,2.8]],color:"o",label:"CORNER"},{pts:[[80,47.2],[94,47.2],[94,49.7],[80,49.7]],color:"o",label:"CORNER"},
+     {pts:[[73.5,15],[76.5,15],[76.5,18.5],[73.5,18.5]],color:"g",label:"ELBOW"},{pts:[[73.5,31.5],[76.5,31.5],[76.5,35],[73.5,35]],color:"g",label:"ELBOW"},
+     {pts:[[85,15.2],[88,15.2],[88,17],[85,17]],color:"p",label:"BLOCK"},{pts:[[85,33],[88,33],[88,34.8],[85,34.8]],color:"p",label:"BLOCK"},
+     {pts:[[82,5.5],[90,5.5],[90,12],[82,12]],color:"w",label:"SHORT CORNER"},{pts:[[89,12.5],[94,12.5],[94,16.6],[89,16.6]],color:"r",label:"DUNKER"}]),
+  C("Pick-and-roll: drop","The screener’s defender (X5) <b>drops</b> back toward the rim to protect the paint; the ball handler’s defender (X1) fights over the screen. Gives up pull-up jumpers to stop layups.",
+    pnr({d:[M("x1","D","X1",64.9,24.2,[[63.4,27.4],[64.6,31.6]],"o"),M("x5","D","X5",70.2,29.0,[[75,27.8],[79.5,26.8]],"o")]})),
+  C("Pick-and-roll: switch","The two defenders simply <b>trade assignments</b>: X5 takes the ball handler, X1 takes the screener. No gap opens, but it can create mismatches — a big on a guard, a guard on a big.",
+    pnr({d:[M("x1","D","X1",64.9,24.2,[[67.6,26.4],[72.6,27.4]],"o"),M("x5","D","X5",70.2,29.0,[[68.0,32.2]],"o")]})),
+  C("Pick-and-roll: hedge / show","X5 jumps out <b>above</b> the screen to stop the ball handler’s path, then sprints back to the roller (red path) while X1 recovers. Slows the ball down, but asks a big man to move fast.",
+    pnr({d:[M("x1","D","X1",64.9,24.2,[[63.4,27.4],[64.6,31.6]],"o"),M("x5","D","X5",70.2,29.0,[[66.6,32.6],[71.5,30.5],[77,27.6]],"r")]})),
+  C("Pick-and-roll: ICE","On a side pick-and-roll, X1 jumps to the <b>top</b> side so the ball handler can’t use the screen; X5 waits on the baseline side. The ball is forced toward the sideline and baseline, away from the middle.",
+    [M("bh","O","BH",71.2,42.6,[[77.5,45.6]],"y",false),M("s","O","S",69.8,39.0,[[76.5,35.5],[84,30.5]],"c",false),M("x1","D","X1",72.8,40.0,[[76.0,42.6]],"o"),M("x5","D","X5",79.8,39.8,[[79.6,43.4]],"o")]),
+  C("2-3 zone","Two guards up top, three players across the back. Each guards an area, not a person. Packs the paint and the rebounds; open looks come from the corners, the high post and over the top.",
+    [M("o1","O","1",64,25),M("o2","O","2",70,9),M("o3","O","3",70,41),M("o4","O","4",88.5,3.5),M("o5","O","5",76,25),
+     M("z1","D","G",69,18.5),M("z2","D","G",69,31.5),M("z3","D","F",84,12),M("z4","D","C",85.5,25),M("z5","D","F",84,38)],
+    [{pts:[[64.5,6],[76,6],[76,25],[64.5,25]],color:"y",label:""},{pts:[[64.5,25],[76,25],[76,44],[64.5,44]],color:"y",label:""},
+     {pts:[[76.5,0.5],[94,0.5],[94,18.5],[76.5,18.5]],color:"c",label:""},{pts:[[78,18.8],[94,18.8],[94,31.2],[78,31.2]],color:"g",label:""},{pts:[[76.5,31.5],[94,31.5],[94,49.5],[76.5,49.5]],color:"c",label:""}])
+];
+[1,2,3,4].forEach(i=>{window.CONCEPTS[i].camera={x0:56,x1:93.5,y0:6,y1:46};window.CONCEPTS[i].tokScale=1.1;});
+})();
+
+</script>
+<script>
+/* FilmRoom page controller */
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PLAYS=window.PLAYS;let film,cur;
+
+function swatch(c){const m={y:'#eaff3d',o:'#ffb72b',c:'#7ef7ff',w:'#ffffff',r:'#ff4d6d',g:'#5dff7a',p:'#ff7ad9'};return m[c]||c;}
+
+function buildPicker(){
+  const box=$('#picker');box.innerHTML='';
+  PLAYS.forEach((p,i)=>{const b=document.createElement('button');b.className='pick';b.dataset.i=i;
+    b.innerHTML=`<span class="pk-tag">${esc(p.tag)}</span><span class="pk-t">${esc(p.title)}</span><span class="pk-s">${esc(p.sub)}</span>`;
+    b.onclick=()=>select(i,true);box.appendChild(b);});
+}
+
+function select(i,scroll){
+  cur=PLAYS[i];document.querySelectorAll('.pick').forEach(b=>b.classList.toggle('on',+b.dataset.i===i));
+  film.playPause(false);film.focus=null;film.load(cur);
+  $('#badge').textContent=cur.badge;
+  // scorebug
+  const sb=cur.context.scorebug.map(s=>`<div class="sb-team" style="--tc:${s.fill}"><span class="sb-ab">${esc(s.abbr)}</span><span class="sb-sc">${esc(s.score)}</span></div>`).join('');
+  $('#scorebug').innerHTML=`<div class="sb-row">${sb}<div class="sb-meta"><b>${esc(cur.context.period)}</b><span>${esc(cur.context.clock)}</span></div></div><div class="sb-sit">${esc(cur.context.situation)}</div>`;
+  $('#ctx-list').innerHTML=cur.context.facts.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  $('#story').innerHTML=cur.story.map(p=>`<p>${p}</p>`).join('');
+  // beats
+  $('#beats').innerHTML=cur.beats.map((b,k)=>`<button class="beat" data-k="${k}"><span class="bt-n">${String(k+1).padStart(2,'0')}</span><span class="bt-b"><b>${esc(b.title)}</b><span>${b.text}</span></span><span class="bt-t">${b.t.toFixed(2)}s</span></button>`).join('');
+  document.querySelectorAll('.beat').forEach(el=>el.onclick=()=>{film.playPause(false);film.seek(cur.beats[+el.dataset.k].t);});
+  // ticks on scrubber
+  $('#ticks').innerHTML=cur.beats.map(b=>`<i style="left:${b.t/cur.dur*100}%"></i>`).join('');
+  $('#scrub').max=cur.dur;
+  // breakdowns
+  const side=(o,el)=>{$(el).innerHTML=`<p class="bd-head">${o.headline}</p>`+
+    `<div class="facts">${o.facts.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`+
+    o.items.map(it=>`<div class="item" ${it.who?`data-focus="${it.who}"`:''}><span class="sw" style="background:${swatch(it.c||'w')}"></span><div><b>${esc(it.title)}</b><p>${it.text}</p></div></div>`).join('');};
+  side(cur.offense,'#off');side(cur.defense,'#def');
+  $('#off-h').textContent=cur.offense.label;$('#def-h').textContent=cur.defense.label;
+  $('#why').innerHTML=cur.why.map((w,k)=>`<div class="why" ${w.focus?`data-focus="${w.focus.join(',')}"`:''}><span class="wn">${k+1}</span><div><b>${esc(w.title)}</b><p>${w.text}</p></div></div>`).join('');
+  $('#sources').innerHTML='Sources: '+cur.sources.map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${esc(s.t)}</a>`).join(' · ')+`<br><span>${esc(cur.caveat)}</span>`;
+  document.querySelectorAll('[data-focus]').forEach(el=>{el.onclick=()=>{const ids=el.dataset.focus.split(',');
+    const same=film.focus===ids[0]&&el.classList.contains('foc');document.querySelectorAll('[data-focus]').forEach(x=>x.classList.remove('foc'));
+    if(same){film.setFocus(null);}else{el.classList.add('foc');film.setFocus(ids[0],ids);$('#film-wrap').scrollIntoView({behavior:'smooth',block:'center'});}};});
+  state();tick(0);
+  if(scroll)$('#film-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function state(){$('#pp').textContent=film.playing?'❚❚ Pause':(film.t>=film.dur-1e-3?'↺ Replay':'▶ Play');}
+function tick(t){$('#scrub').value=t;$('#tread').textContent=t.toFixed(2)+'s / '+cur.dur.toFixed(2)+'s';
+  const k=film.beatIndex(t);const b=cur.beats[k];
+  $('#cap-n').textContent=String(k+1).padStart(2,'0')+' / '+String(cur.beats.length).padStart(2,'0');
+  $('#cap-t').textContent=b.title;$('#cap-x').innerHTML=b.text;
+  document.querySelectorAll('.beat').forEach(el=>el.classList.toggle('on',+el.dataset.k===k));
+  $('#prog').style.width=(t/cur.dur*100)+'%';}
+
+function init(){
+  film=new Film($('#film'));film.onTick=tick;film.onState=state;
+  buildPicker();
+  $('#pp').onclick=()=>film.playPause();
+  $('#rs').onclick=()=>{film.playPause(false);film.seek(0);};
+  $('#pb').onclick=()=>{film.playPause(false);const k=film.beatIndex(film.t-0.001);const tgt=(film.t-cur.beats[k].t>.05)?cur.beats[k].t:cur.beats[Math.max(0,k-1)].t;film.seek(tgt);};
+  $('#nb').onclick=()=>{film.playPause(false);const n=cur.beats.find(b=>b.t>film.t+1e-3);film.seek(n?n.t:film.dur);};
+  $('#scrub').oninput=e=>{film.playPause(false);film.seek(+e.target.value);};
+  document.querySelectorAll('.spd').forEach(b=>b.onclick=()=>{film.speed=+b.dataset.s;document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('on',x===b));});
+  [['coach','#t-coach'],['routes','#t-routes'],['labels','#t-labels'],['names','#t-names']].forEach(([k,s])=>{const el=$(s);el.checked=film.show[k];el.onchange=()=>{film.show[k]=el.checked;film.render();};});
+  $('#t-all').onchange=e=>{film.show.allNames=e.target.checked;film.render();};
+  document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&e.target.type!=='range'&&e.target.type!=='checkbox')return;
+    if(e.code==='Space'){e.preventDefault();film.playPause();}if(e.code==='ArrowRight'){e.preventDefault();$('#nb').click();}if(e.code==='ArrowLeft'){e.preventDefault();$('#pb').click();}});
+  film.onFocus=id=>{if(!id)document.querySelectorAll('[data-focus]').forEach(x=>x.classList.remove('foc'));};
+  select(0,false);
+  // concept diagrams
+  (window.CONCEPTS||[]).forEach(c=>{const card=document.createElement('div');card.className='concept';
+    card.innerHTML=`<div class="c-fig"></div><b>${esc(c.title)}</b><p>${c.text}</p>`;$('#concepts').appendChild(card);
+    const f=Film.diagram(card.querySelector('.c-fig'),c);f.show.names=true;f.render();});
+}
+document.addEventListener('DOMContentLoaded',init);
+})();
+
+</script>
+<script src="../snow.js"></script>
+<script src="../a11y.js"></script>
+<script src="../spotifyplayer.js"></script>
+</body>
+</html>
