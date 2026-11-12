@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0c1725" />
+  <meta name="description" content="ATLAS — an interactive trip planner with 3D globe, intelligent itineraries, destinations, budgets, and research." />
+  <title>ATLAS — Travel, meticulously planned · arielbodik.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <div class="site-shell" id="app">
+    <header class="masthead">
+      <div class="brandmark"><span class="brand-icon">✳</span><div><strong>ATLAS<span class="brand-dot">.</span></strong><small>BY ARIEL BODIK</small></div></div>
+      <div class="header-middle"><span class="online-dot"></span><span>THE TRAVEL INTELLIGENCE STUDIO</span><span class="header-divider"></span><span id="save-status">Your plans stay in this browser</span></div>
+      <div class="header-actions"><button class="btn ghost only-desktop" id="help-btn" title="Open user guide">? <span>Guide</span></button><button class="btn ghost" id="import-btn" title="Import a saved trip">↥ <span>Import</span></button><button class="btn bright" id="export-btn">↧ <span>Export</span></button><input type="file" id="import-input" accept=".json,application/json" hidden /></div>
+    </header>
+    <main class="workspace">
+      <aside class="left-panel" id="left-panel">
+        <div class="scroll-panel">
+          <div class="panel-eyebrow"><span class="eyebrow-line"></span> YOUR NEXT CHAPTER <span class="version-label">01 / PLAN</span></div>
+          <div class="panel-heading"><h1>Go somewhere<br /><em>extraordinary.</em></h1><p>Every great journey starts with a plan worth making.</p></div>
+          <section class="field-group" aria-label="Trip settings">
+            <label for="trip-title">TRIP NAME</label><input id="trip-title" class="text-input" value="A week in Kyoto" placeholder="Name your adventure" maxlength="80" />
+            <label for="destination-query">WHERE TO?</label><div class="input-combo"><span class="input-icon">⌕</span><input id="destination-query" type="search" placeholder="City, country or region" autocomplete="off" aria-label="Search destination" /><button id="destination-search" title="Search destination">↗</button></div>
+            <div class="search-results" id="destination-results" hidden></div><div class="selected-destination"><span class="pin-symbol">◎</span><span id="selected-destination">Kyoto, Japan</span><span class="tiny-pill">DEMO</span></div>
+            <div class="split-fields"><div><label for="start-date">DEPART</label><input type="date" id="start-date" class="text-input" /></div><div><label for="end-date">RETURN</label><input type="date" id="end-date" class="text-input" /></div></div>
+            <div class="split-fields"><div><label for="travelers">TRAVELERS</label><input type="number" id="travelers" class="text-input" min="1" max="30" value="2" /></div><div><label for="currency">CURRENCY</label><select id="currency" class="text-input"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="GBP">GBP (£)</option><option value="JPY">JPY (¥)</option><option value="CAD">CAD ($)</option><option value="AUD">AUD ($)</option><option value="INR">INR (₹)</option></select></div></div>
+            <label for="budget-limit">TOTAL BUDGET <span class="label-note">your own target, not a price quote</span></label><div class="input-combo"><span class="input-icon" id="budget-symbol">$</span><input id="budget-limit" type="number" value="3000" min="0" step="50" /></div>
+            <label>TRAVEL STYLE</label><div class="segmented" id="pace-picker"><button data-pace="relaxed">Easygoing</button><button data-pace="balanced" class="active">Balanced</button><button data-pace="packed">All in</button></div>
+            <label>YOUR INTERESTS <span class="label-note">choose as many as you like</span></label><div class="chips" id="interests"><button data-interest="Culture" class="selected">✦ Culture</button><button data-interest="Food" class="selected">◒ Food</button><button data-interest="Nature">♧ Nature</button><button data-interest="Architecture" class="selected">⌂ Architecture</button><button data-interest="Adventure">↗ Adventure</button><button data-interest="Shopping">◇ Shopping</button><button data-interest="Nightlife">☾ Nightlife</button><button data-interest="Wellness">◡ Wellness</button></div>
+            <button class="primary-action" id="smart-plan-btn"><span>✧</span> Optimize my itinerary <span class="button-arrow">→</span></button>
+            <button class="secondary-action" id="ai-plan-btn">✳ Ask AI to review this trip <span class="button-arrow">↗</span></button>
+          </section>
+          <div class="sidebar-divider"></div>
+          <section class="browse-section"><div class="section-title"><div><span class="eyebrow">02 / EXPLORE</span><h2>Discover places</h2></div><span id="place-count" class="count-bubble">0</span></div>
+            <div class="explore-controls"><select id="category-filter" class="text-input"><option value="sights">Sights & landmarks</option><option value="nature">Parks & outdoors</option><option value="food">Food & drink</option><option value="stays">Stays & hotels</option></select><button class="mini-action" id="find-places-btn" title="Search OpenStreetMap for places">Find ↗</button></div>
+            <p class="hint" id="place-hint">Explore real-world places for your destination. Search runs only when you request it.</p>
+            <div id="place-list" class="place-list"></div>
+          </section>
+          <div class="sidebar-bottom"><p>Made to explore more, plan better.</p><small>ATLAS / AN ARIELBODIK.COM PROJECT</small></div>
+        </div>
+      </aside>
+      <section class="center-panel">
+        <div class="canvas-topbar"><div><span class="eyebrow">YOUR WORLD, YOUR WAY</span><h2 id="canvas-title">Kyoto, Japan <span class="heading-star">✳</span></h2><span class="canvas-subtitle">Your route, your rhythm, every detail in one place.</span></div><div class="canvas-modes"><button id="map-mode" class="active">▧ &nbsp;2D MAP</button><button id="globe-mode">◉ &nbsp;3D GLOBE</button></div></div>
+        <div class="map-container" id="map-container">
+          <div id="map"></div><div id="map-fallback" class="map-fallback" hidden><div class="fallback-grid"></div><div id="offline-map-plot" class="offline-map-plot"></div><div class="fallback-caption"><strong>◎ Geographic sketch</strong><small>Actual stop coordinates · not a street or route map · connect for detailed basemap</small></div></div>
+          <div id="globe-view" hidden><div id="globe-render"></div><div class="globe-overlay"><span class="eyebrow">PROCEDURAL / 3D</span><h3>The whole world<br />is waiting.</h3><p>Drag to orbit · Scroll to zoom<br />Pins represent your planned stops.</p></div></div>
+          <div class="map-floating-top"><span class="live-label"><i></i> INTERACTIVE EXPLORER</span><span id="map-coordinates">35.0116° N, 135.7681° E</span></div>
+          <div class="map-tools"><button id="map-zoom-in" title="Zoom in">+</button><button id="map-zoom-out" title="Zoom out">−</button><button id="map-tilt" title="Switch map perspective">3D</button><button id="map-style-control" title="Choose a map style">◫</button><button id="map-center" title="Recenter map">⌖</button></div>
+          <div class="map-legend"><span><b class="legend-dot amber"></b> Your itinerary</span><span><b class="legend-dot teal"></b> Discovered places</span><span id="route-state">Routes are straight-line guides</span></div>
+        </div>
+        <div class="lower-dashboard">
+          <div class="dash-card weather-card"><div class="card-head"><span>◌ &nbsp; WEATHER OUTLOOK</span><span id="weather-mode">LIVE CONDITIONS</span></div><div class="weather-main"><span class="weather-glyph" id="weather-icon">☼</span><div><strong id="weather-temp">—</strong><span id="weather-summary">Checking conditions...</span></div></div><div id="weather-forecast" class="weather-days"></div><small class="source-note">Weather: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>. Forecasts are not available for distant dates.</small></div>
+          <div class="dash-card budget-card"><div class="card-head"><span>◈ &nbsp; YOUR BUDGET</span><span>EDITABLE ESTIMATES</span></div><div class="budget-figures"><div><small>Planned expenses</small><strong id="planned-total">$0</strong></div><div class="budget-right"><small>Your budget</small><strong id="budget-total">$3,000</strong></div></div><div class="progress-track"><div class="progress-fill" id="budget-progress" style="width:0%"></div></div><div class="budget-tail"><span id="budget-remaining">$3,000 remaining</span><span id="budget-percent">0% allocated</span></div><div class="budget-cats" id="budget-cats"></div></div>
+          <div class="dash-card guide-card"><div class="card-head"><span>✳ &nbsp; DESTINATION BRIEF</span><span>WIKIVOYAGE</span></div><p id="destination-brief">Fetch a short destination overview from Wikivoyage, or explore curated sources below.</p><div class="guide-bottom"><a id="wikivoyage-link" href="https://en.wikivoyage.org/wiki/Kyoto" target="_blank" rel="noopener">Read travel guide ↗</a><button id="refresh-guide">Refresh ↻</button></div></div>
+        </div>
+        <div class="toolbox-strip" aria-label="Travel planning toolbox"><button data-tool="budget"><span>◈</span><b>Budget lab</b><small>All trip expenses</small></button><button data-tool="packing"><span>▧</span><b>Packing list</b><small>Personal checklist</small></button><button data-tool="readiness"><span>✓</span><b>Travel readiness</b><small>Documents & prep</small></button><button data-tool="providers"><span>↗</span><b>Booking desk</b><small>Provider research</small></button></div>
+        <div class="research-strip"><div><span class="eyebrow">RESEARCH, NOT GUESSWORK</span><h3>Source desk</h3><p>Official resources, destination guides and booking providers. External links are research and booking starting points, not verified prices.</p></div><button id="sources-btn" class="btn border-btn">Browse sources ↗</button></div>
+        <footer class="canvas-footer">Map © OpenStreetMap contributors · Map tiles: OpenFreeMap · Weather: Open-Meteo · Guide text: Wikivoyage (CC BY-SA) · Local estimates are not vendor quotes.</footer>
+      </section>
+      <aside class="right-panel" id="right-panel"><div class="right-sticky"><div class="itinerary-heading"><div><span class="eyebrow">03 / YOUR ITINERARY</span><h2>The journey,<br /><em>beautifully mapped.</em></h2></div><button id="add-custom-btn" class="round-add" title="Add a custom stop">+</button></div>
+          <div class="trip-summary"><div><span>◷</span><strong id="trip-days">5</strong><small>DAYS</small></div><div><span>◎</span><strong id="trip-stops">8</strong><small>STOPS</small></div><div><span>♧</span><strong id="trip-travelers">2</strong><small>PEOPLE</small></div></div>
+          <div class="day-scroll" id="day-scroll"></div>
+          <div class="right-bottom"><div class="itinerary-tip"><span>✦</span><p>Drag stops to reorder, edit the time and expense, or press <strong>Optimize</strong> to group nearby activities. Times are planning estimates.</p></div><button class="full-outlined" id="add-day-btn">+ Add another day</button><div class="save-line"><span class="online-dot"></span><span>Auto-saved locally</span><button id="reset-demo-btn">Reset demo</button></div></div>
+        </div></aside>
+    </main>
+    <nav class="mobile-tabbar" aria-label="Mobile panels"><button data-tab="plan" class="active">✎ <span>Plan</span></button><button data-tab="map">◎ <span>Map</span></button><button data-tab="itinerary">▤ <span>Itinerary</span></button></nav>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div class="modal-screen" id="modal-screen" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-top"><div><span class="eyebrow" id="modal-kicker">ATLAS / STUDIO</span><h2 id="modal-title">Dialog title</h2></div><button class="close-modal" id="close-modal" title="Close">×</button></div><div class="modal-body" id="modal-body"></div></div></div>
+  <template id="custom-stop-template"><form id="custom-stop-form" class="modal-form"><label>STOP NAME <input name="name" required maxlength="120" placeholder="e.g. Sunrise at the river" /></label><label>SEARCH A PLACE (OPTIONAL) <div class="form-search"><input id="custom-place-query" placeholder="Search by name or address" /><button type="button" id="custom-place-search">Search</button></div></label><div id="custom-place-results" class="search-results"></div><div class="form-grid"><label>LATITUDE <input name="lat" type="number" step="any" min="-90" max="90" required /></label><label>LONGITUDE <input name="lng" type="number" step="any" min="-180" max="180" required /></label></div><div class="form-grid"><label>DAY <select id="custom-day" name="day"></select></label><label>CATEGORY <select name="category"><option value="sight">Attraction</option><option value="food">Food</option><option value="nature">Nature</option><option value="stay">Lodging</option><option value="other">Other</option></select></label></div><div class="form-grid"><label>DURATION (MIN) <input name="duration" type="number" min="15" max="1440" step="15" value="60" /></label><label>PLANNED COST <input name="cost" type="number" min="0" value="0" step="1" /></label></div><label>NOTES <textarea name="notes" rows="3" placeholder="Ideas, accessibility notes, reservation info..."></textarea></label><div class="modal-actions"><button class="primary-action" type="submit">Add to itinerary →</button></div></form></template>
+</body>
+</html>
