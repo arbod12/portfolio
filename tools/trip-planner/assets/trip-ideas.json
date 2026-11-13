@@ -1,0 +1,425 @@
+[
+  {
+    "title": "Poconos inn and spa",
+    "destination": {
+      "name": "Canadensis, Pennsylvania, United States",
+      "lat": 41.2122,
+      "lng": -75.2386
+    },
+    "start": "2026-12-28",
+    "end": "2026-12-30",
+    "travelers": 2,
+    "pace": "balanced",
+    "currency": "USD",
+    "budget": 800,
+    "days": [
+      {
+        "date": "2026-12-28",
+        "stops": [
+          {
+            "name": "Check in · Pump House Inn & Spa",
+            "lat": 41.2122,
+            "lng": -75.2386,
+            "time": "20:45",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Tell the inn you are arriving in the evening. Rates are not published, so all four prices are my estimates. The property also shows up as a whole-house rental and on a sale listing. Open the booking page for Dec 28-30 to confirm it takes single-room stays.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://hotels.cloudbeds.com/reservation/WAtfFm",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2026-12-29",
+        "stops": [
+          {
+            "name": "Breakfast at the inn · Pump House Inn & Spa",
+            "lat": 41.2122,
+            "lng": -75.2386,
+            "time": "09:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations.  Rates are not published, so all four prices are my estimates. The property also shows up as a whole-house rental and on a sale listing. Open the booking page for Dec 28-30 to confirm it takes single-room stays.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://hotels.cloudbeds.com/reservation/WAtfFm",
+            "estimate": true
+          },
+          {
+            "name": "Spa time · Pump House Inn & Spa",
+            "lat": 41.2122,
+            "lng": -75.2386,
+            "time": "11:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Book treatments ahead. Rates are not published, so all four prices are my estimates. The property also shows up as a whole-house rental and on a sale listing. Open the booking page for Dec 28-30 to confirm it takes single-room stays.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://hotels.cloudbeds.com/reservation/WAtfFm",
+            "estimate": true
+          },
+          {
+            "name": "Snow tubing (optional) · Camelback Snow Tubing",
+            "lat": 41.0539,
+            "lng": -75.3434,
+            "time": "14:00",
+            "category": "sight",
+            "duration": 75,
+            "cost": 50,
+            "notes": "Research lead — confirm current hours, rates and reservations. Two-hour session. Skip if she wants a quiet day. 4.1 is under your bar. The ticket price is not on the page I could read, so $50 is my estimate. The season depends on snowmaking weather.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://www.camelbackresort.com/snow-tubing-tickets",
+            "estimate": true
+          },
+          {
+            "name": "Dinner · The PourHouse Bar and Grille",
+            "lat": 41.173,
+            "lng": -75.2708,
+            "time": "18:30",
+            "category": "food",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Open Tuesday. Check vegetarian dishes by phone. 4.4 is just under your bar. One recent review describes rude service. Vegetarian dishes not checked.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2026-12-30",
+        "stops": [
+          {
+            "name": "Breakfast and pack · Pump House Inn & Spa",
+            "lat": 41.2122,
+            "lng": -75.2386,
+            "time": "08:30",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations.  Rates are not published, so all four prices are my estimates. The property also shows up as a whole-house rental and on a sale listing. Open the booking page for Dec 28-30 to confirm it takes single-room stays.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://hotels.cloudbeds.com/reservation/WAtfFm",
+            "estimate": true
+          }
+        ]
+      }
+    ],
+    "expenses": [],
+    "quotes": [],
+    "notes": "Hosted stay about 1 hr 25 from home, or about 2 hr 30 with a New Brunswick pickup. Fits the Dec 28-30 window. Most good restaurants nearby close Monday and Tuesday, so plan dinner carefully.",
+    "sourceNotice": "Research template from user-authored HTML. All prices, dates, hours and routes must be checked again with operators. These are not live quotes."
+  },
+  {
+    "title": "Poconos cabin (Airbnb)",
+    "destination": {
+      "name": "Lake Harmony, Pennsylvania, United States",
+      "lat": 41.0585,
+      "lng": -75.601
+    },
+    "start": "2026-12-28",
+    "end": "2026-12-30",
+    "travelers": 2,
+    "pace": "balanced",
+    "currency": "USD",
+    "budget": 800,
+    "days": [
+      {
+        "date": "2026-12-28",
+        "stops": [
+          {
+            "name": "Arrive at the cabin · Airbnb cabin with hot tub (pick one)",
+            "lat": 41.0585,
+            "lng": -75.601,
+            "time": "21:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Self check-in. Cook dinner or bring takeout. I cannot read Airbnb ratings or prices, so nothing here is confirmed. All three prices are my estimates before cleaning and service fees. Move this pin once you pick a listing.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://www.airbnb.com/pocono-mountains-pa/stays/cabins",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2026-12-29",
+        "stops": [
+          {
+            "name": "Breakfast · Terra Cottage Cafe and Gifts",
+            "lat": 41.0602,
+            "lng": -75.5911,
+            "time": "09:30",
+            "category": "food",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Open 8am-4pm. Closes at 4pm, so not a dinner option.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          },
+          {
+            "name": "Walk around Jim Thorpe · Jim Thorpe old town",
+            "lat": 40.8637,
+            "lng": -75.7388,
+            "time": "11:30",
+            "category": "sight",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. About 25 minutes away. I did not check which shops are open on Dec 29.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          },
+          {
+            "name": "Hot tub and fireplace · Airbnb cabin with hot tub (pick one)",
+            "lat": 41.0585,
+            "lng": -75.601,
+            "time": "15:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations.  I cannot read Airbnb ratings or prices, so nothing here is confirmed. All three prices are my estimates before cleaning and service fees. Move this pin once you pick a listing.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://www.airbnb.com/pocono-mountains-pa/stays/cabins",
+            "estimate": true
+          },
+          {
+            "name": "Dinner · Boulder View Tavern",
+            "lat": 41.0517,
+            "lng": -75.5848,
+            "time": "18:30",
+            "category": "food",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Or cook in. This is the only sit-down place open Tuesday. 4.0 is under your bar. Listed only because it is the Tuesday dinner option in town.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2026-12-30",
+        "stops": []
+      }
+    ],
+    "expenses": [],
+    "quotes": [],
+    "notes": "Private cabin with a hot tub and fireplace. Usually the cheapest way to get a cozy two nights, if you cook one dinner in.",
+    "sourceNotice": "Research template from user-authored HTML. All prices, dates, hours and routes must be checked again with operators. These are not live quotes."
+  },
+  {
+    "title": "Lake George: Sagamore ice bar weekend",
+    "destination": {
+      "name": "Bolton Landing, New York, United States",
+      "lat": 43.5558,
+      "lng": -73.6456
+    },
+    "start": "2027-01-23",
+    "end": "2027-01-25",
+    "travelers": 2,
+    "pace": "balanced",
+    "currency": "USD",
+    "budget": 800,
+    "days": [
+      {
+        "date": "2027-01-23",
+        "stops": [
+          {
+            "name": "Stop at The Hyde Collection · The Hyde Collection",
+            "lat": 43.3102,
+            "lng": -73.6341,
+            "time": "12:30",
+            "category": "sight",
+            "duration": 75,
+            "cost": 12,
+            "notes": "Research lead — confirm current hours, rates and reservations. On the route. Open 10am-5pm Saturday. Closed Monday to Wednesday.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://www.hydecollection.org/hours-admission/",
+            "estimate": true
+          },
+          {
+            "name": "Check in · The Sagamore Resort",
+            "lat": 43.5558,
+            "lng": -73.6456,
+            "time": "16:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Check-in opens at 4pm. The $154 is the lowest price Kayak advertises for any date, not a quote for yours. The other two are my estimates. A resort fee applies but the amount is not published. Some restaurants are seasonal.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://www.opalcollection.com/sagamore/winter/",
+            "estimate": true
+          },
+          {
+            "name": "Dinner · The Gem",
+            "lat": 43.5589,
+            "lng": -73.6549,
+            "time": "18:00",
+            "category": "food",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Go before 7:30pm. Gets busy after 7:30pm.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          },
+          {
+            "name": "Glacier Ice Bar · Glacier Ice Bar at the Sagamore",
+            "lat": 43.5549,
+            "lng": -73.6449,
+            "time": "20:30",
+            "category": "sight",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Dress warm. The offer must be booked by Nov 23. Ticket price for non-package guests was not listed.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://www.opalcollection.com/sagamore/?p=25573",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2027-01-24",
+        "stops": [
+          {
+            "name": "Indoor pool and spa · The Sagamore Resort",
+            "lat": 43.5558,
+            "lng": -73.6456,
+            "time": "10:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Pool is open 7am-10pm. The $154 is the lowest price Kayak advertises for any date, not a quote for yours. The other two are my estimates. A resort fee applies but the amount is not published. Some restaurants are seasonal.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://www.opalcollection.com/sagamore/winter/",
+            "estimate": true
+          },
+          {
+            "name": "Easy walk at Up Yonda Farm · Up Yonda Farm",
+            "lat": 43.5763,
+            "lng": -73.6548,
+            "time": "14:00",
+            "category": "sight",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Check Sunday hours first. Winter programs and any fee were not checked.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          },
+          {
+            "name": "Dinner · Beyond the Sea",
+            "lat": 43.5573,
+            "lng": -73.6553,
+            "time": "18:30",
+            "category": "food",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Check Sunday hours by phone. Seafood-led menu. Ask about vegetarian and chicken mains.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2027-01-25",
+        "stops": []
+      }
+    ],
+    "expenses": [],
+    "quotes": [],
+    "notes": "About 4 hours away, so it does not fit Dec 28-30. Planned here for the Jan 23-25 ice bar weekend. You would need Sunday and Monday off.",
+    "sourceNotice": "Research template from user-authored HTML. All prices, dates, hours and routes must be checked again with operators. These are not live quotes."
+  },
+  {
+    "title": "Backup: skyline spa (Edgewater)",
+    "destination": {
+      "name": "Edgewater, New Jersey, United States",
+      "lat": 40.8186,
+      "lng": -73.9793
+    },
+    "start": "2026-12-28",
+    "end": "2026-12-30",
+    "travelers": 2,
+    "pace": "balanced",
+    "currency": "USD",
+    "budget": 800,
+    "days": [
+      {
+        "date": "2026-12-28",
+        "stops": [
+          {
+            "name": "Check in · Hotel SoJo + SoJo Spa Club",
+            "lat": 40.8186,
+            "lng": -73.9793,
+            "time": "20:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Free valet. 4.4 is under your bar. Room rates are not published; all three are my estimates.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://hotels.cloudbeds.com/reservation/r5bslE",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2026-12-29",
+        "stops": [
+          {
+            "name": "Spa day · Hotel SoJo + SoJo Spa Club",
+            "lat": 40.8186,
+            "lng": -73.9793,
+            "time": "09:00",
+            "category": "stay",
+            "duration": 45,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations. Rooftop pool is quietest in the morning. 4.4 is under your bar. Room rates are not published; all three are my estimates.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "https://hotels.cloudbeds.com/reservation/r5bslE",
+            "estimate": true
+          },
+          {
+            "name": "ARTE Museum · ARTE Museum New York",
+            "lat": 40.7473,
+            "lng": -74.0089,
+            "time": "17:00",
+            "category": "sight",
+            "duration": 75,
+            "cost": 50,
+            "notes": "Research lead — confirm current hours, rates and reservations. Open until 9pm. Ticket price is my estimate. Buy timed tickets ahead.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          },
+          {
+            "name": "Dinner · The Caves",
+            "lat": 40.8096,
+            "lng": -73.9904,
+            "time": "19:30",
+            "category": "food",
+            "duration": 75,
+            "cost": 0,
+            "notes": "Research lead — confirm current hours, rates and reservations.  Just under your bar. Vegetarian options not checked.",
+            "source": "User-provided Trip Planner 3D",
+            "sourceUrl": "",
+            "estimate": true
+          }
+        ]
+      },
+      {
+        "date": "2026-12-30",
+        "stops": []
+      }
+    ],
+    "expenses": [],
+    "quotes": [],
+    "notes": "Shortest drive, so the most time relaxing. Kept here as the fallback if snow rules out the mountains.",
+    "sourceNotice": "Research template from user-authored HTML. All prices, dates, hours and routes must be checked again with operators. These are not live quotes."
+  }
+]
